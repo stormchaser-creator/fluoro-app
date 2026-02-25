@@ -1,0 +1,106 @@
+// ═══════════════════════════════════════════════════════════
+// THEME SYSTEM — Medical Teal Palette
+// ═══════════════════════════════════════════════════════════
+
+export const THEMES = {
+  light: {
+    bg: '#F8F9FA',
+    surface: '#FFFFFF',
+    surfaceHover: '#F1F5F9',
+    surfaceActive: '#E8F4F5',
+    primary: '#0D7377',
+    primaryLight: '#E8F4F5',
+    primaryDark: '#095557',
+    text: '#1A1A2E',
+    textSecondary: '#4A5568',
+    textMuted: '#718096',
+    textDim: '#A0AEC0',
+    border: '#E2E8F0',
+    borderLight: '#F1F5F9',
+    success: '#059669',
+    successBg: '#ECFDF5',
+    error: '#DC2626',
+    errorBg: '#FEF2F2',
+    warning: '#D97706',
+    warningBg: '#FFFBEB',
+    answerBg: '#ECFDF5',
+    answerBorder: '#059669',
+    answerText: '#065F46',
+    rsvpBg: '#FFFFFF',
+    tabBar: '#FFFFFF',
+    tabBarBorder: '#E2E8F0',
+    tabActive: '#0D7377',
+    tabInactive: '#A0AEC0',
+    shadow: '0 1px 3px rgba(0,0,0,0.08)',
+    shadowMd: '0 4px 6px rgba(0,0,0,0.07)',
+  },
+  dark: {
+    bg: '#121212',
+    surface: '#1E1E1E',
+    surfaceHover: '#2A2A2A',
+    surfaceActive: '#1A3A3B',
+    primary: '#4DB6AC',
+    primaryLight: '#1A3A3B',
+    primaryDark: '#80CBC4',
+    text: '#E8E8E8',
+    textSecondary: '#B0B0B0',
+    textMuted: '#808080',
+    textDim: '#555555',
+    border: '#333333',
+    borderLight: '#2A2A2A',
+    success: '#34D399',
+    successBg: '#064E3B',
+    error: '#F87171',
+    errorBg: '#7F1D1D',
+    warning: '#FBBF24',
+    warningBg: '#78350F',
+    answerBg: '#064E3B',
+    answerBorder: '#34D399',
+    answerText: '#A7F3D0',
+    rsvpBg: '#000000',
+    tabBar: '#1E1E1E',
+    tabBarBorder: '#333333',
+    tabActive: '#4DB6AC',
+    tabInactive: '#666666',
+    shadow: 'none',
+    shadowMd: 'none',
+  },
+};
+
+// Domain colors — light and dark variants
+export const DOMAIN_COLORS = {
+  light: {
+    equipment: '#2563EB',
+    digital: '#7C3AED',
+    radprotection: '#DC2626',
+    doselimits: '#D97706',
+    radbio: '#059669',
+    skineffects: '#DB2777',
+    qa: '#0891B2',
+  },
+  dark: {
+    equipment: '#60A5FA',
+    digital: '#A78BFA',
+    radprotection: '#F87171',
+    doselimits: '#FBBF24',
+    radbio: '#34D399',
+    skineffects: '#F472B6',
+    qa: '#22D3EE',
+  },
+};
+
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+};
+
+export const RADIUS = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  full: 9999,
+};
