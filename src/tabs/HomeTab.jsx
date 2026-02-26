@@ -34,12 +34,19 @@ export default function HomeTab({ onNavigate }) {
       const readSet = study.readSections[domainId] || [];
       if (readSet.length < material.length) return domainId;
     }
-    // Fallback: find any domain with unread sections
+    // Fallback: find any domain the user has started reading but hasn't finished
     for (const d of DOMAINS) {
       const material = STUDY_MATERIAL[d.id];
       if (!material) continue;
       const readSet = study.readSections[d.id] || [];
       if (readSet.length > 0 && readSet.length < material.length) return d.id;
+    }
+    // Fallback: find any domain with unread sections (even if user hasn't started it)
+    for (const d of DOMAINS) {
+      const material = STUDY_MATERIAL[d.id];
+      if (!material) continue;
+      const readSet = study.readSections[d.id] || [];
+      if (readSet.length < material.length) return d.id;
     }
     return null;
   })();

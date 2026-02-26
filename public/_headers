@@ -1,0 +1,15 @@
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/sw2.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache

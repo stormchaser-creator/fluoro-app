@@ -21,8 +21,9 @@ function AppShell() {
   const reviewCount = study.missedQuestions.length + study.flaggedQuestions.length;
 
   // Navigate to a tab with optional context (e.g. { domain: 'radiation_physics' })
+  // Wrap context in a new object each time so useEffect always fires
   const navigateTo = (tab, context) => {
-    setNavContext(context || null);
+    setNavContext(context ? { ...context, _ts: Date.now() } : null);
     setActiveTab(tab);
   };
 
@@ -44,7 +45,7 @@ function AppShell() {
         padding: '0 16px',
         paddingBottom: 80,
       }}>
-        <Header />
+        <Header onGoHome={() => navigateTo('home')} />
         {activeTab === 'home' && <HomeTab onNavigate={navigateTo} />}
         {activeTab === 'study' && <StudyTab onLaunchRsvp={launchRsvp} navContext={navContext} />}
         {activeTab === 'review' && <ReviewTab />}

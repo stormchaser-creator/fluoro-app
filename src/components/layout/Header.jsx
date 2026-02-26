@@ -2,7 +2,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { useApp } from '../../context/AppContext';
 import { getLevelForXp, LEVEL_TITLES } from '../../data/badges';
 
-export default function Header() {
+export default function Header({ onGoHome }) {
   const { theme } = useTheme();
   const { state } = useApp();
   const level = getLevelForXp(state.xp);
@@ -15,7 +15,7 @@ export default function Header() {
       padding: '12px 0',
       marginBottom: 8,
     }}>
-      <div>
+      <div onClick={onGoHome} style={{ cursor: 'pointer' }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, letterSpacing: -0.5 }}>
           Fluoro<span style={{ color: theme.primary }}>Path</span>
         </div>
