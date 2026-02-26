@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/fluoro-app/',
+  base: '/',
   plugins: [
     react(),
     VitePWA({
@@ -15,7 +15,7 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        navigateFallback: '/fluoro-app/index.html',
+        navigateFallback: '/index.html',
       },
       manifest: {
         name: 'FluoroPath',
@@ -25,15 +25,15 @@ export default defineConfig({
         background_color: '#F8F9FA',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/fluoro-app/',
+        start_url: '/',
         icons: [
           {
-            src: '/fluoro-app/icon-192.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/fluoro-app/icon-512.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
           },
