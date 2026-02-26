@@ -10,7 +10,7 @@ import Button from '../components/shared/Button';
 import ProgressBar from '../components/shared/ProgressBar';
 import { getIllustration } from '../components/study/StudyIllustrations';
 
-export default function StudyTab({ onLaunchRsvp }) {
+export default function StudyTab({ onLaunchRsvp, navContext }) {
   const { theme, domainColors } = useTheme();
   const { state, dispatch } = useApp();
   const { study, studyDispatch } = useStudy();
@@ -22,6 +22,24 @@ export default function StudyTab({ onLaunchRsvp }) {
   const [quizIndex, setQuizIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [expandedDomain, setExpandedDomain] = useState(null);
+
+  // Handle navigation context from HomeTab (resume where left off)
+  useEffect(() => {
+    if (!navContext) return;
+    if (navContext.domain) {
+      setSubView('read');
+      setReadDomain(navContext.domain);
+      // Find first unread section in this domain
+      const material = STUDY_MATERIAL[navContext.domain];
+      if (material) {
+        const readSet = study.readSections[navContext.domain] || [];
+        const nextUnread = material.findIndex((_, i) => !readSet.includes(i));
+        if (nextUnread >= 0) {
+          setExpandedSection(nextUnread);
+        }
+      }
+    }
+  }, [navContext]);
 
   // Auto-scroll expanded section into view
   useEffect(() => {

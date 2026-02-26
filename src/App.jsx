@@ -15,9 +15,16 @@ function AppShell() {
   const { theme } = useTheme();
   const { study } = useStudy();
   const [activeTab, setActiveTab] = useState('home');
+  const [navContext, setNavContext] = useState(null);
   const [rsvp, setRsvp] = useState(null); // { words: [], title: '' }
 
   const reviewCount = study.missedQuestions.length + study.flaggedQuestions.length;
+
+  // Navigate to a tab with optional context (e.g. { domain: 'radiation_physics' })
+  const navigateTo = (tab, context) => {
+    setNavContext(context || null);
+    setActiveTab(tab);
+  };
 
   const launchRsvp = (text, title) => {
     const words = text.split(/\s+/).filter(w => w.length > 0);
@@ -38,8 +45,8 @@ function AppShell() {
         paddingBottom: 80,
       }}>
         <Header />
-        {activeTab === 'home' && <HomeTab onNavigate={setActiveTab} />}
-        {activeTab === 'study' && <StudyTab onLaunchRsvp={launchRsvp} />}
+        {activeTab === 'home' && <HomeTab onNavigate={navigateTo} />}
+        {activeTab === 'study' && <StudyTab onLaunchRsvp={launchRsvp} navContext={navContext} />}
         {activeTab === 'review' && <ReviewTab />}
         {activeTab === 'progress' && <ProgressTab />}
         {activeTab === 'profile' && <ProfileTab />}

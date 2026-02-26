@@ -4,6 +4,7 @@ import { useStudy } from '../context/StudyContext';
 import { DOMAINS } from '../data/domains';
 import { QUESTIONS } from '../data/questions';
 import { PHASES } from '../data/phases';
+import STUDY_MATERIAL from '../studyMaterial';
 import Card from '../components/shared/Card';
 import ProgressRing from '../components/shared/ProgressRing';
 
@@ -21,6 +22,27 @@ export default function HomeTab({ onNavigate }) {
     return null;
   })();
   const scheduleDomains = (schedule?.domains || []).map(id => DOMAINS.find(d => d.id === id)).filter(Boolean);
+
+  // Determine if user has study progress and find resume point
+  const hasProgress = study.totalAnswered > 0 || Object.keys(study.readSections).length > 0;
+  const resumeDomain = (() => {
+    // First check today's scheduled domains for one with unread sections
+    const todayDomainIds = schedule?.domains || [];
+    for (const domainId of todayDomainIds) {
+      const material = STUDY_MATERIAL[domainId];
+      if (!material) continue;
+      const readSet = study.readSections[domainId] || [];
+      if (readSet.length < material.length) return domainId;
+    }
+    // Fallback: find any domain with unread sections
+    for (const d of DOMAINS) {
+      const material = STUDY_MATERIAL[d.id];
+      if (!material) continue;
+      const readSet = study.readSections[d.id] || [];
+      if (readSet.length > 0 && readSet.length < material.length) return d.id;
+    }
+    return null;
+  })();
 
   const completedCount = Object.values(state.completedDays).filter(Boolean).length;
 
@@ -72,7 +94,7 @@ export default function HomeTab({ onNavigate }) {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
-              onClick={() => onNavigate('study')}
+              onClick={() => onNavigate('study', resumeDomain ? { domain: resumeDomain } : undefined)}
               style={{
                 flex: 1, padding: '12px 20px', borderRadius: 10,
                 border: 'none', background: theme.primary, color: '#FFF',
@@ -80,7 +102,7 @@ export default function HomeTab({ onNavigate }) {
                 minHeight: 48,
               }}
             >
-              Start Session
+              {hasProgress ? 'Continue Session' : 'Start Session'}
             </button>
             <button
               onClick={() => dispatch({ type: 'TOGGLE_DAY', day: state.currentDay })}
