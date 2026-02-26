@@ -47,7 +47,7 @@ function AppShell() {
       }}>
         <Header onGoHome={() => navigateTo('home')} />
         {activeTab === 'home' && <HomeTab onNavigate={navigateTo} />}
-        {activeTab === 'study' && <StudyTab onLaunchRsvp={launchRsvp} navContext={navContext} />}
+        {activeTab === 'study' && <StudyTab key={navContext?._ts || 'default'} onLaunchRsvp={launchRsvp} navContext={navContext} />}
         {activeTab === 'review' && <ReviewTab />}
         {activeTab === 'progress' && <ProgressTab />}
         {activeTab === 'profile' && <ProfileTab />}

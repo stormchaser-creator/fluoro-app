@@ -25,20 +25,19 @@ export default function StudyTab({ onLaunchRsvp, navContext }) {
 
   // Handle navigation context from HomeTab (resume where left off)
   useEffect(() => {
-    if (!navContext) return;
-    if (navContext.domain) {
+    if (!navContext?.domain) return;
+    // Small delay to ensure study state is hydrated from cloud
+    const timer = setTimeout(() => {
       setSubView('read');
       setReadDomain(navContext.domain);
-      // Find first unread section in this domain
       const material = STUDY_MATERIAL[navContext.domain];
       if (material) {
         const readSet = study.readSections[navContext.domain] || [];
         const nextUnread = material.findIndex((_, i) => !readSet.includes(i));
-        if (nextUnread >= 0) {
-          setExpandedSection(nextUnread);
-        }
+        setExpandedSection(nextUnread >= 0 ? nextUnread : 0);
       }
-    }
+    }, 50);
+    return () => clearTimeout(timer);
   }, [navContext]);
 
   // Auto-scroll expanded section into view
