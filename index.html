@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'" />
+    <link rel="icon" href="/fluoro-app/icon-192.png" />
+    <link rel="apple-touch-icon" href="/fluoro-app/apple-icon-180.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/fluoro-app/apple-icon-180.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/fluoro-app/apple-icon-512.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#0D7377" />
+    <title>FluoroPath</title>
+    <script type="module" crossorigin src="/fluoro-app/assets/index-C3KLbLro.js"></script>
+    <link rel="stylesheet" crossorigin href="/fluoro-app/assets/index-VuPoelC9.css">
+  <link rel="manifest" href="/fluoro-app/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/fluoro-app/registerSW.js"></script></head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Kill any old service workers and force reload with fresh assets
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          var killed = false;
+          regs.forEach(function(reg) {
+            if (reg.active && reg.active.scriptURL.indexOf('sw2.js') === -1) {
+              reg.unregister();
+              killed = true;
+            }
+          });
+          if (killed) {
+            caches.keys().then(function(names) {
+              Promise.all(names.map(function(n) { return caches.delete(n); })).then(function() {
+                window.location.reload();
+              });
+            });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

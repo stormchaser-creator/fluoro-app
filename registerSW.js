@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/fluoro-app/sw2.js', { scope: '/fluoro-app/' })})}
