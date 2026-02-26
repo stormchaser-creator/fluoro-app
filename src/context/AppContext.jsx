@@ -1,8 +1,10 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import { syncToCloud, restoreFromCloud } from '../lib/supabase';
 
 const AppContext = createContext();
 
 const STORAGE_KEY = 'fluoro_app_state';
+const CLOUD_TABLE = 'fluoro_app_state';
 
 function getToday() {
   return new Date().toISOString().split('T')[0];
@@ -19,7 +21,6 @@ const defaultState = {
 };
 
 function migrateFromV1() {
-  // Check for old localStorage keys and migrate
   const oldDay = localStorage.getItem('fluoro_currentDay');
   const oldCompleted = localStorage.getItem('fluoro_completedDays');
   const oldWpm = localStorage.getItem('fluoro_rsvpWpm');
@@ -28,13 +29,12 @@ function migrateFromV1() {
   if (oldDay || oldCompleted) {
     const migrated = {
       ...defaultState,
-      onboardingComplete: true, // existing user
+      onboardingComplete: true,
       currentDay: oldDay ? JSON.parse(oldDay) : 1,
       completedDays: oldCompleted ? JSON.parse(oldCompleted) : {},
       rsvpWpm: oldWpm ? parseInt(oldWpm) || 300 : 300,
       rsvpChunk: oldChunk ? parseInt(oldChunk) || 1 : 1,
     };
-    // Clean up old keys
     ['fluoro_currentDay', 'fluoro_completedDays', 'fluoro_rsvpWpm', 'fluoro_rsvpChunk', 'fluoro_darkMode']
       .forEach(k => localStorage.removeItem(k));
     return migrated;
@@ -54,8 +54,19 @@ function loadState() {
   }
 }
 
+// Pick the state with more progress (higher XP = more usage)
+function pickBestState(local, cloud) {
+  if (!cloud) return local;
+  if (!local || local.xp === 0) return { ...defaultState, ...cloud };
+  // Cloud wins if it has more XP (more progress)
+  if ((cloud.xp || 0) > (local.xp || 0)) return { ...defaultState, ...cloud };
+  return local;
+}
+
 function appReducer(state, action) {
   switch (action.type) {
+    case 'HYDRATE_FROM_CLOUD':
+      return { ...state, ...action.state };
     case 'SET_DAY':
       return { ...state, currentDay: Math.max(1, Math.min(30, action.day)) };
     case 'TOGGLE_DAY': {
@@ -94,11 +105,29 @@ function appReducer(state, action) {
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, null, loadState);
+  const cloudRestored = useRef(false);
 
+  // Restore from cloud on mount (if cloud has better data)
+  useEffect(() => {
+    if (cloudRestored.current) return;
+    cloudRestored.current = true;
+    restoreFromCloud(CLOUD_TABLE).then(cloudState => {
+      if (cloudState) {
+        const local = loadState();
+        const best = pickBestState(local, cloudState);
+        if (best !== local) {
+          dispatch({ type: 'HYDRATE_FROM_CLOUD', state: best });
+        }
+      }
+    });
+  }, []);
+
+  // Persist to localStorage + cloud on every state change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch { /* silently fail */ }
+    syncToCloud(CLOUD_TABLE, state);
   }, [state]);
 
   return (

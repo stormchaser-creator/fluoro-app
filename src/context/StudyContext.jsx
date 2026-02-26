@@ -1,8 +1,10 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import { syncToCloud, restoreFromCloud } from '../lib/supabase';
 
 const StudyContext = createContext();
 
 const STORAGE_KEY = 'fluoro_study_state';
+const CLOUD_TABLE = 'fluoro_study_state';
 
 const defaultState = {
   quizResults: {},
@@ -41,8 +43,20 @@ function loadState() {
   }
 }
 
+// Pick the state with more progress (more answers = more usage)
+function pickBestState(local, cloud) {
+  if (!cloud) return local;
+  if (!local || local.totalAnswered === 0) return { ...defaultState, ...cloud };
+  const localProgress = (local.totalAnswered || 0) + Object.keys(local.readSections || {}).length;
+  const cloudProgress = (cloud.totalAnswered || 0) + Object.keys(cloud.readSections || {}).length;
+  if (cloudProgress > localProgress) return { ...defaultState, ...cloud };
+  return local;
+}
+
 function studyReducer(state, action) {
   switch (action.type) {
+    case 'HYDRATE_FROM_CLOUD':
+      return { ...state, ...action.state };
     case 'RECORD_ANSWER': {
       const { domain, correct, questionIndex } = action;
       const prev = state.quizResults[domain] || { correct: 0, wrong: 0 };
@@ -100,11 +114,29 @@ function studyReducer(state, action) {
 
 export function StudyProvider({ children }) {
   const [state, dispatch] = useReducer(studyReducer, null, loadState);
+  const cloudRestored = useRef(false);
 
+  // Restore from cloud on mount (if cloud has better data)
+  useEffect(() => {
+    if (cloudRestored.current) return;
+    cloudRestored.current = true;
+    restoreFromCloud(CLOUD_TABLE).then(cloudState => {
+      if (cloudState) {
+        const local = loadState();
+        const best = pickBestState(local, cloudState);
+        if (best !== local) {
+          dispatch({ type: 'HYDRATE_FROM_CLOUD', state: best });
+        }
+      }
+    });
+  }, []);
+
+  // Persist to localStorage + cloud on every state change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch { /* silently fail */ }
+    syncToCloud(CLOUD_TABLE, state);
   }, [state]);
 
   return (
