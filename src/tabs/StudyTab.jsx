@@ -10,7 +10,7 @@ import Button from '../components/shared/Button';
 import ProgressBar from '../components/shared/ProgressBar';
 import { getIllustration } from '../components/study/StudyIllustrations';
 
-export default function StudyTab({ onLaunchRsvp, navContext }) {
+export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
   const { theme, domainColors } = useTheme();
   const { state, dispatch } = useApp();
   const { study, studyDispatch } = useStudy();
@@ -303,6 +303,27 @@ export default function StudyTab({ onLaunchRsvp, navContext }) {
 
     return (
       <div>
+        {/* Mock Exam CTA */}
+        {onNavigate && (
+          <Card
+            onClick={() => onNavigate('mockExam')}
+            style={{
+              marginBottom: 16, cursor: 'pointer',
+              background: `linear-gradient(135deg, ${theme.primaryLight}, ${theme.surface})`,
+              border: `1px solid ${theme.primary}30`,
+            }}
+            padding="sm"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 22 }}>🏆</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>Take a Mock Exam</div>
+                <div style={{ fontSize: 12, color: theme.textMuted }}>90 questions, timed, ARRT-weighted</div>
+              </div>
+              <span style={{ color: theme.primary, fontSize: 18 }}>›</span>
+            </div>
+          </Card>
+        )}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
           <button
             onClick={() => { setQuizDomain(null); setQuizIndex(0); setShowAnswer(false); }}

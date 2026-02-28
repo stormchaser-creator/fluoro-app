@@ -7,6 +7,7 @@ import { PHASES } from '../data/phases';
 import STUDY_MATERIAL from '../studyMaterial';
 import Card from '../components/shared/Card';
 import ProgressRing from '../components/shared/ProgressRing';
+import ProgressBar from '../components/shared/ProgressBar';
 
 export default function HomeTab({ onNavigate }) {
   const { theme, domainColors } = useTheme();
@@ -58,7 +59,52 @@ export default function HomeTab({ onNavigate }) {
   const answeredQ = study.totalAnswered;
   const correctRate = study.totalAnswered > 0 ? (study.totalCorrect / study.totalAnswered) * 100 : 0;
   const dayProgress = (completedCount / 30) * 100;
-  const readiness = Math.round(correctRate * 0.6 + dayProgress * 0.4);
+
+  // ═══════════════════════════════════════════════════════
+  // PASS READINESS PREDICTION (Feature 3)
+  // ═══════════════════════════════════════════════════════
+
+  // Factor 1: Quiz accuracy (last 50 questions approximated via overall accuracy) — 40% weight
+  const accuracyScore = correctRate;
+
+  // Factor 2: Domain coverage (have they studied all 8 domains?) — 25% weight
+  const domainsCovered = study.domainsStudied?.length || 0;
+  const domainCoverageScore = (domainsCovered / DOMAINS.length) * 100;
+
+  // Factor 3: Mock exam scores (if any taken) — 35% weight
+  const examHistory = study.examHistory || [];
+  const recentExams = examHistory.slice(-3); // last 3 exams
+  const examScore = recentExams.length > 0
+    ? recentExams.reduce((sum, e) => sum + (e.total > 0 ? (e.score / e.total) * 100 : 0), 0) / recentExams.length
+    : 0;
+  const hasExams = recentExams.length > 0;
+
+  // Weighted readiness: if no exams taken, redistribute exam weight to accuracy
+  const readiness = hasExams
+    ? Math.round(accuracyScore * 0.40 + domainCoverageScore * 0.25 + examScore * 0.35)
+    : Math.round(accuracyScore * 0.60 + domainCoverageScore * 0.40);
+
+  // Readiness label and color
+  const getReadinessInfo = (r) => {
+    if (r >= 90) return { label: "You're ready — schedule your exam", color: '#D4AF37' }; // gold
+    if (r >= 75) return { label: 'Almost ready', color: theme.success };
+    if (r >= 50) return { label: 'Getting closer', color: theme.warning };
+    return { label: 'Keep studying', color: theme.error };
+  };
+  const readinessInfo = getReadinessInfo(readiness);
+
+  // Domain-level readiness (sorted weakest to strongest)
+  const domainReadiness = DOMAINS.map(d => {
+    const result = study.quizResults[d.id];
+    const total = result ? result.correct + result.wrong : 0;
+    const accuracy = total > 0 ? Math.round((result.correct / total) * 100) : 0;
+    return { ...d, accuracy, total };
+  }).sort((a, b) => a.accuracy - b.accuracy);
+
+  // Best mock exam score
+  const bestExamScore = examHistory.length > 0
+    ? Math.max(...examHistory.map(e => e.total > 0 ? Math.round((e.score / e.total) * 100) : 0))
+    : null;
 
   return (
     <div>
@@ -70,9 +116,64 @@ export default function HomeTab({ onNavigate }) {
       </div>
 
       {/* Readiness Ring */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
         <ProgressRing value={readiness} size={140} strokeWidth={10} label="Exam Readiness" />
       </div>
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{
+          fontSize: 14, fontWeight: 600, color: readinessInfo.color,
+          display: 'inline-block',
+          padding: '4px 16px', borderRadius: 20,
+          background: readinessInfo.color + '15',
+        }}>
+          {readinessInfo.label}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          MOCK EXAM CARD — Prominent, premium placement
+          ══════════════════════════════════════════════════ */}
+      <Card
+        onClick={() => onNavigate('mockExam')}
+        style={{
+          marginBottom: 16, cursor: 'pointer',
+          background: `linear-gradient(135deg, ${theme.primaryLight}, ${theme.surface})`,
+          border: `2px solid ${theme.primary}30`,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 14,
+            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 28, boxShadow: `0 4px 12px ${theme.primary}30`,
+          }}>
+            🏆
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: theme.text, marginBottom: 2 }}>
+              Mock Exam
+            </div>
+            <div style={{ fontSize: 13, color: theme.textMuted }}>
+              90 questions, 2-hour timer — simulate the real ARRT exam
+            </div>
+          </div>
+          <span style={{ color: theme.primary, fontSize: 22, fontWeight: 700 }}>›</span>
+        </div>
+        {bestExamScore !== null && (
+          <div style={{
+            marginTop: 12, paddingTop: 10, borderTop: `1px solid ${theme.border}`,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span style={{ fontSize: 13, color: theme.textMuted }}>
+              Best score: <strong style={{ color: bestExamScore >= 75 ? theme.success : theme.warning }}>{bestExamScore}%</strong>
+            </span>
+            <span style={{ fontSize: 13, color: theme.textMuted }}>
+              {examHistory.length} exam{examHistory.length !== 1 ? 's' : ''} taken
+            </span>
+          </div>
+        )}
+      </Card>
 
       {/* Today's Plan */}
       {schedule && (
@@ -154,6 +255,40 @@ export default function HomeTab({ onNavigate }) {
           </Card>
         ))}
       </div>
+
+      {/* ══════════════════════════════════════════════════
+          DOMAIN READINESS — Mini bar chart (weakest to strongest)
+          ══════════════════════════════════════════════════ */}
+      {study.totalAnswered > 0 && (
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{
+            fontSize: 12, fontWeight: 600, color: theme.textMuted,
+            textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12,
+          }}>
+            Domain Readiness (weakest → strongest)
+          </div>
+          {domainReadiness.map(d => {
+            const dc = domainColors[d.id] || d.color;
+            return (
+              <div key={d.id} style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 14 }}>{d.icon}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{d.name}</span>
+                  </div>
+                  <span style={{
+                    fontSize: 13, fontWeight: 700,
+                    color: d.total === 0 ? theme.textDim : d.accuracy >= 75 ? theme.success : d.accuracy >= 50 ? theme.warning : theme.error,
+                  }}>
+                    {d.total > 0 ? `${d.accuracy}%` : 'Not started'}
+                  </span>
+                </div>
+                <ProgressBar value={d.accuracy} color={dc} height={5} />
+              </div>
+            );
+          })}
+        </Card>
+      )}
 
       {/* Day Navigation */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', marginBottom: 16 }}>

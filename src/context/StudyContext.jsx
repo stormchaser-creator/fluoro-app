@@ -17,6 +17,7 @@ const defaultState = {
   domainsStudied: [],
   lateNightSessions: 0,
   readSections: {},  // { domainId: [0, 2, 5] } — indices of read sections
+  examHistory: [],   // [{ date, score, total, domainScores, questionsMissed }]
 };
 
 function migrateQuizResults() {
@@ -106,6 +107,16 @@ function studyReducer(state, action) {
           [domain]: [...prev, sectionIndex].sort((a, b) => a - b),
         },
       };
+    }
+    case 'SAVE_EXAM_RESULT': {
+      const { date, score, total, domainScores, questionsMissed } = action;
+      const newHistory = [
+        ...(state.examHistory || []),
+        { date, score, total, domainScores, questionsMissed },
+      ];
+      // Keep last 50 exams
+      if (newHistory.length > 50) newHistory.shift();
+      return { ...state, examHistory: newHistory };
     }
     default:
       return state;

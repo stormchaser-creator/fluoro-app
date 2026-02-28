@@ -10,6 +10,7 @@ import ReviewTab from './tabs/ReviewTab';
 import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
 import SpeedReader from './components/study/SpeedReader';
+import MockExam from './components/features/MockExam';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 
 function AppShell() {
@@ -48,10 +49,11 @@ function AppShell() {
       }}>
         <Header onGoHome={() => navigateTo('home')} />
         {activeTab === 'home' && <HomeTab onNavigate={navigateTo} />}
-        {activeTab === 'study' && <StudyTab key={navContext?._ts || 'default'} onLaunchRsvp={launchRsvp} navContext={navContext} />}
+        {activeTab === 'study' && <StudyTab key={navContext?._ts || 'default'} onLaunchRsvp={launchRsvp} navContext={navContext} onNavigate={navigateTo} />}
         {activeTab === 'review' && <ReviewTab />}
         {activeTab === 'progress' && <ProgressTab />}
         {activeTab === 'profile' && <ProfileTab />}
+        {activeTab === 'mockExam' && <MockExam onClose={() => navigateTo('home')} />}
       </div>
       <BottomTabBar
         activeTab={activeTab}
