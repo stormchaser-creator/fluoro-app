@@ -40,19 +40,22 @@ export default function ProgressTab() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
         {[
           { label: 'Accuracy', value: `${overallAccuracy}%`, color: overallAccuracy >= 75 ? theme.success : overallAccuracy >= 50 ? theme.warning : theme.error },
-          { label: 'Answered', value: study.totalAnswered, color: theme.primary },
+          { label: 'Answered', value: study.totalAnswered.toLocaleString(), color: theme.primary },
           { label: 'Streak', value: `${state.streak.current}d`, color: theme.warning },
         ].map(stat => (
           <Card key={stat.label} padding="sm" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: stat.color }}>{stat.value}</div>
-            <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>{stat.label}</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: stat.color, letterSpacing: '-0.02em' }}>{stat.value}</div>
+            <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{stat.label}</div>
           </Card>
         ))}
       </div>
 
       {/* 30-Day Calendar */}
       <Card style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 14 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 700, color: theme.textMuted,
+          textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 14,
+        }}>
           30-Day Progress
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
@@ -83,7 +86,10 @@ export default function ProgressTab() {
 
       {/* Domain Breakdown */}
       <Card style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 16 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 700, color: theme.textMuted,
+          textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 16,
+        }}>
           Domain Mastery
         </div>
         {domainStats.map(d => (
@@ -108,7 +114,10 @@ export default function ProgressTab() {
 
       {/* Question Coverage */}
       <Card style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 14 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 700, color: theme.textMuted,
+          textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 14,
+        }}>
           Question Coverage
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -135,12 +144,15 @@ export default function ProgressTab() {
 
       {/* Additional Stats */}
       <Card>
-        <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 14 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 700, color: theme.textMuted,
+          textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 14,
+        }}>
           Additional Stats
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: 14, color: theme.textSecondary }}>XP Earned</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: theme.primary }}>{state.xp}</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: theme.primary }}>{state.xp.toLocaleString()}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: 14, color: theme.textSecondary }}>Longest Streak</span>
