@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../theme/ThemeContext';
 import { useApp } from '../context/AppContext';
 import { useStudy } from '../context/StudyContext';
@@ -54,17 +54,20 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
     }
   }, [expandedSection, readDomain]);
 
+  // Shuffle questions once when domain changes (avoids re-shuffle on every render)
+  const shuffledAll = useMemo(() => {
+    const arr = [...QUESTIONS];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizDomain]);
+
   const filteredQuestions = quizDomain
     ? QUESTIONS.filter(q => q.domain === quizDomain)
-    : (() => {
-        // Fisher-Yates shuffle for uniform distribution
-        const arr = [...QUESTIONS];
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      })();
+    : shuffledAll;
 
   const markQuiz = (correct) => {
     const q = filteredQuestions[quizIndex];

@@ -56,9 +56,7 @@ export default function HomeTab({ onNavigate }) {
 
   // Calculate readiness from quiz data
   const totalQ = QUESTIONS.length;
-  const answeredQ = study.totalAnswered;
   const correctRate = study.totalAnswered > 0 ? (study.totalCorrect / study.totalAnswered) * 100 : 0;
-  const dayProgress = (completedCount / 30) * 100;
 
   // ═══════════════════════════════════════════════════════
   // PASS READINESS PREDICTION (Feature 3)
