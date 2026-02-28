@@ -56,7 +56,15 @@ export default function StudyTab({ onLaunchRsvp, navContext }) {
 
   const filteredQuestions = quizDomain
     ? QUESTIONS.filter(q => q.domain === quizDomain)
-    : [...QUESTIONS].sort(() => 0.5 - Math.random());
+    : (() => {
+        // Fisher-Yates shuffle for uniform distribution
+        const arr = [...QUESTIONS];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      })();
 
   const markQuiz = (correct) => {
     const q = filteredQuestions[quizIndex];

@@ -19,16 +19,21 @@ export const DEVICE_ID = getDeviceId();
 
 /**
  * Save state to a Supabase table. Upserts by device_id.
+ * Debounced to avoid excessive network calls during rapid state changes.
  */
-export async function syncToCloud(table, state) {
-  try {
-    await supabase.from(table).upsert(
-      { device_id: DEVICE_ID, state, updated_at: new Date().toISOString() },
-      { onConflict: 'device_id' }
-    );
-  } catch (e) {
-    console.warn(`[fluoro] Cloud sync failed for ${table}:`, e.message);
-  }
+const syncTimers = {};
+export function syncToCloud(table, state) {
+  if (syncTimers[table]) clearTimeout(syncTimers[table]);
+  syncTimers[table] = setTimeout(async () => {
+    try {
+      await supabase.from(table).upsert(
+        { device_id: DEVICE_ID, state, updated_at: new Date().toISOString() },
+        { onConflict: 'device_id' }
+      );
+    } catch (e) {
+      console.warn(`[fluoro] Cloud sync failed for ${table}:`, e.message);
+    }
+  }, 2000);
 }
 
 /**

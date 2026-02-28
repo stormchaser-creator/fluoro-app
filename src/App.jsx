@@ -10,6 +10,7 @@ import ReviewTab from './tabs/ReviewTab';
 import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
 import SpeedReader from './components/study/SpeedReader';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 
 function AppShell() {
   const { theme } = useTheme();
@@ -70,12 +71,14 @@ function AppShell() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppProvider>
-        <StudyProvider>
-          <AppShell />
-        </StudyProvider>
-      </AppProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppProvider>
+          <StudyProvider>
+            <AppShell />
+          </StudyProvider>
+        </AppProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
