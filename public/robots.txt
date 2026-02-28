@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /landing/
+Disallow: /app/
+
+Sitemap: https://fluoropath.com/sitemap.xml
