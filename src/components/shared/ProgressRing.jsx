@@ -1,14 +1,23 @@
+import { useState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeContext';
 
 export default function ProgressRing({ value = 0, size = 120, strokeWidth = 8, label = 'Readiness' }) {
   const { theme } = useTheme();
+  const [animatedValue, setAnimatedValue] = useState(0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (Math.min(value, 100) / 100) * circumference;
+  const offset = circumference - (Math.min(animatedValue, 100) / 100) * circumference;
+
+  // Animate on mount and value change
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimatedValue(value), 100);
+    return () => clearTimeout(timer);
+  }, [value]);
 
   const getColor = (v) => {
     if (v < 40) return theme.error;
     if (v < 70) return theme.warning;
+    if (v >= 90) return '#D4AF37'; // gold for exam-ready
     return theme.success;
   };
 
@@ -29,12 +38,12 @@ export default function ProgressRing({ value = 0, size = 120, strokeWidth = 8, l
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke={getColor(value)}
+            stroke={getColor(animatedValue)}
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            style={{ transition: 'stroke-dashoffset 0.8s ease-out, stroke 0.3s' }}
+            style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease' }}
           />
         </svg>
         <div style={{
@@ -48,8 +57,14 @@ export default function ProgressRing({ value = 0, size = 120, strokeWidth = 8, l
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <div style={{ fontSize: size > 140 ? 32 : 26, fontWeight: 800, color: theme.text, lineHeight: 1 }}>
-            {Math.round(value)}%
+          <div style={{
+            fontSize: size > 140 ? 34 : 28,
+            fontWeight: 800,
+            color: theme.text,
+            lineHeight: 1,
+            letterSpacing: '-0.02em',
+          }}>
+            {Math.round(animatedValue)}%
           </div>
           <div style={{ fontSize: 12, color: theme.textMuted, fontWeight: 500, marginTop: 4 }}>
             {label}

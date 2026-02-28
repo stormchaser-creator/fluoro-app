@@ -17,10 +17,17 @@ import AuthPage from './components/pages/AuthPage';
 import { signOut } from './lib/supabase';
 
 function LoadingSpinner() {
+  // Detect saved theme preference for loading screen
+  let isDark = true;
+  try {
+    const saved = localStorage.getItem('fluoro_theme');
+    if (saved) isDark = saved === 'dark';
+  } catch { /* ignore */ }
+
   return (
     <div style={{
-      minHeight: '100vh',
-      background: '#121212',
+      minHeight: '100dvh',
+      background: isDark ? '#121212' : '#F8F9FA',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -28,15 +35,33 @@ function LoadingSpinner() {
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       <div style={{
-        width: 48,
-        height: 48,
+        width: 72,
+        height: 72,
+        borderRadius: 22,
+        background: 'linear-gradient(135deg, #0D7377 0%, #4DB6AC 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+        boxShadow: '0 8px 24px rgba(13,115,119,0.3)',
+      }}>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2 L12 22" />
+          <path d="M2 12 L22 12" />
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      </div>
+      <div style={{
+        width: 40,
+        height: 40,
         border: '3px solid #333333',
         borderTopColor: '#4DB6AC',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
       }} />
       <div style={{ color: '#808080', fontSize: 14, marginTop: 16, fontWeight: 500 }}>
-        Loading...
+        Loading FluoroPath...
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -83,19 +108,28 @@ function AppShell() {
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       color: theme.text,
     }}>
+      <style>{`
+        @keyframes tabFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .tab-content { animation: tabFadeIn 0.2s ease-out; }
+      `}</style>
       <div style={{
         maxWidth: 680,
         margin: '0 auto',
         padding: '0 16px',
-        paddingBottom: 80,
+        paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
       }}>
         <Header onGoHome={() => navigateTo('home')} />
-        {activeTab === 'home' && <HomeTab onNavigate={navigateTo} />}
-        {activeTab === 'study' && <StudyTab key={navContext?._ts || 'default'} onLaunchRsvp={launchRsvp} navContext={navContext} onNavigate={navigateTo} />}
-        {activeTab === 'review' && <ReviewTab />}
-        {activeTab === 'progress' && <ProgressTab />}
-        {activeTab === 'profile' && <ProfileTab onSignOut={handleSignOut} signingOut={signingOut} />}
-        {activeTab === 'mockExam' && <MockExam onClose={() => navigateTo('home')} />}
+        <div key={activeTab} className="tab-content">
+          {activeTab === 'home' && <HomeTab onNavigate={navigateTo} />}
+          {activeTab === 'study' && <StudyTab key={navContext?._ts || 'default'} onLaunchRsvp={launchRsvp} navContext={navContext} onNavigate={navigateTo} />}
+          {activeTab === 'review' && <ReviewTab />}
+          {activeTab === 'progress' && <ProgressTab />}
+          {activeTab === 'profile' && <ProfileTab onSignOut={handleSignOut} signingOut={signingOut} />}
+          {activeTab === 'mockExam' && <MockExam onClose={() => navigateTo('home')} />}
+        </div>
       </div>
       <BottomTabBar
         activeTab={activeTab}

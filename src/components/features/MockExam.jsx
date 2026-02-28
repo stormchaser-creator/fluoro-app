@@ -337,13 +337,20 @@ export default function MockExam({ onClose }) {
             background: 'none', border: 'none', color: theme.primary,
             fontSize: 15, fontWeight: 500, cursor: 'pointer', padding: '8px 0',
             marginBottom: 16, fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 4,
           }}
         >
-          ← Back to Home
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Home
         </button>
 
-        {/* Mode selector pills */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {/* Mode selector segmented control */}
+        <div style={{
+          display: 'flex', gap: 0, marginBottom: 24,
+          backgroundColor: theme.surfaceHover,
+          borderRadius: 12,
+          padding: 3,
+        }}>
           {[
             { id: 'exam', label: 'Mock Exam' },
             { id: 'custom', label: 'Custom Quiz' },
@@ -353,12 +360,14 @@ export default function MockExam({ onClose }) {
               onClick={() => setMode(m.id)}
               style={{
                 flex: 1, padding: '12px 16px', borderRadius: 10,
-                border: mode === m.id ? `2px solid ${theme.primary}` : `1px solid ${theme.border}`,
-                background: mode === m.id ? theme.primaryLight : theme.surface,
+                border: 'none',
+                background: mode === m.id ? theme.surface : 'transparent',
                 color: mode === m.id ? theme.primary : theme.textMuted,
-                fontWeight: mode === m.id ? 700 : 400,
-                fontSize: 16, cursor: 'pointer', fontFamily: 'inherit',
-                minHeight: 48,
+                fontWeight: mode === m.id ? 700 : 500,
+                fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
+                minHeight: 46,
+                transition: 'all 0.2s',
+                boxShadow: mode === m.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
               }}
             >
               {m.label}
@@ -369,10 +378,23 @@ export default function MockExam({ onClose }) {
         {mode === 'exam' ? (
           <>
             {/* Mock Exam Info Card */}
-            <Card style={{ marginBottom: 16, background: `linear-gradient(135deg, ${theme.primaryLight}, ${theme.surface})` }}>
-              <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <div style={{ fontSize: 48, marginBottom: 8 }}>🏆</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: theme.text, marginBottom: 4 }}>
+            <Card style={{ marginBottom: 16, background: `linear-gradient(135deg, ${theme.primaryLight}, ${theme.surface})`, border: `1px solid ${theme.primary}15` }}>
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: 16,
+                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark || theme.primary})`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  boxShadow: `0 4px 14px ${theme.primary}30`,
+                }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: theme.text, marginBottom: 4, letterSpacing: '-0.02em' }}>
                   ARRT Mock Exam
                 </div>
                 <div style={{ fontSize: 14, color: theme.textMuted }}>
@@ -380,19 +402,18 @@ export default function MockExam({ onClose }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
                 {[
-                  { label: 'Questions', value: '90', icon: '📝' },
-                  { label: 'Time Limit', value: '2 hours', icon: '⏱️' },
-                  { label: 'Pass Score', value: '75%', icon: '🎯' },
+                  { label: 'Questions', value: '90', color: theme.primary },
+                  { label: 'Time Limit', value: '2 hrs', color: theme.warning },
+                  { label: 'Pass Score', value: '75%', color: theme.success },
                 ].map(item => (
                   <div key={item.label} style={{
-                    background: theme.surface, borderRadius: 10, padding: 12,
+                    background: theme.surface, borderRadius: 10, padding: 14,
                     textAlign: 'center', boxShadow: theme.shadow,
                   }}>
-                    <div style={{ fontSize: 22, marginBottom: 4 }}>{item.icon}</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: theme.text }}>{item.value}</div>
-                    <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 500 }}>{item.label}</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: item.color, marginBottom: 2 }}>{item.value}</div>
+                    <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{item.label}</div>
                   </div>
                 ))}
               </div>
@@ -636,15 +657,20 @@ export default function MockExam({ onClose }) {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           marginBottom: 12, padding: '8px 0',
         }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: theme.textSecondary }}>
-            Question {currentIdx + 1} of {questions.length}
+          <div style={{
+            fontSize: 14, fontWeight: 600, color: theme.textSecondary,
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            <span style={{ color: theme.text, fontWeight: 700 }}>{currentIdx + 1}</span>
+            <span style={{ color: theme.textDim }}> / {questions.length}</span>
           </div>
           {(timerActive || timeLeft > 0) && (
             <div style={{
-              fontSize: 18, fontWeight: 800, color: timerColor,
+              fontSize: 16, fontWeight: 800, color: timerColor,
               fontVariantNumeric: 'tabular-nums',
-              padding: '4px 12px', borderRadius: 8,
-              background: timeLeft <= 600 ? theme.errorBg : timeLeft <= 1800 ? theme.warningBg : 'transparent',
+              padding: '5px 14px', borderRadius: 8,
+              background: timeLeft <= 600 ? theme.errorBg : timeLeft <= 1800 ? theme.warningBg : theme.surfaceHover,
+              transition: 'background 0.3s, color 0.3s',
             }}>
               {formatTime(timeLeft)}
             </div>
@@ -657,9 +683,9 @@ export default function MockExam({ onClose }) {
             }}
             style={{
               background: 'none', border: `1px solid ${theme.border}`,
-              color: theme.textMuted, fontSize: 13, fontWeight: 500,
-              padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-              fontFamily: 'inherit',
+              color: theme.textMuted, fontSize: 13, fontWeight: 600,
+              padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
+              fontFamily: 'inherit', transition: 'border-color 0.2s',
             }}
           >
             End Exam
@@ -704,8 +730,8 @@ export default function MockExam({ onClose }) {
 
           {!showAnswer && !isAnswered ? (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ color: theme.textDim, fontSize: 14, marginBottom: 12, fontStyle: 'italic' }}>
-                Try to answer from memory before revealing...
+              <div style={{ color: theme.textDim, fontSize: 14, marginBottom: 14 }}>
+                Think about your answer, then reveal.
               </div>
               <Button onClick={() => setShowAnswer(true)} fullWidth>
                 Reveal Answer
@@ -717,22 +743,35 @@ export default function MockExam({ onClose }) {
                 background: theme.answerBg, borderRadius: 10, padding: 16,
                 marginBottom: 16, borderLeft: `3px solid ${theme.answerBorder}`,
               }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: theme.answerBorder,
+                  textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6,
+                }}>
+                  Answer
+                </div>
                 <div style={{ color: theme.answerText, fontSize: 15, lineHeight: 1.7 }}>{q.a}</div>
               </div>
               {!isAnswered ? (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <Button variant="danger" onClick={() => markAnswer(false)} style={{ flex: 1 }}>
-                    Wrong
-                  </Button>
-                  <Button variant="success" onClick={() => markAnswer(true)} style={{ flex: 1 }}>
-                    Correct
-                  </Button>
+                <div>
+                  <div style={{ fontSize: 13, color: theme.textMuted, textAlign: 'center', marginBottom: 10 }}>
+                    Did you get it right?
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <Button variant="danger" onClick={() => markAnswer(false)} style={{ flex: 1 }}>
+                      Missed It
+                    </Button>
+                    <Button variant="success" onClick={() => markAnswer(true)} style={{ flex: 1 }}>
+                      Got It
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div style={{
-                  textAlign: 'center', padding: '8px 0',
+                  textAlign: 'center', padding: '10px 0',
                   color: answers[currentIdx] === 'correct' ? theme.success : theme.error,
                   fontWeight: 700, fontSize: 15,
+                  background: answers[currentIdx] === 'correct' ? theme.successBg : theme.errorBg,
+                  borderRadius: 8,
                 }}>
                   {answers[currentIdx] === 'correct' ? 'Marked Correct' : 'Marked Wrong'}
                 </div>
@@ -774,16 +813,28 @@ export default function MockExam({ onClose }) {
         {/* Quick nav dots for flagged/unanswered */}
         {questions.length <= 90 && (
           <div style={{
-            marginTop: 16, padding: 12, background: theme.surface,
-            borderRadius: 12, boxShadow: theme.shadow,
+            marginTop: 16, padding: 14, background: theme.surface,
+            borderRadius: 14, boxShadow: theme.shadow,
           }}>
             <div style={{
-              fontSize: 11, fontWeight: 600, color: theme.textMuted,
-              textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              marginBottom: 10,
             }}>
-              Question Map
+              <div style={{
+                fontSize: 11, fontWeight: 600, color: theme.textMuted,
+                textTransform: 'uppercase', letterSpacing: 0.5,
+              }}>
+                Question Map
+              </div>
+              <div style={{ fontSize: 12, color: theme.textMuted, fontWeight: 500 }}>
+                {answeredCount}/{questions.length} answered
+              </div>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(26px, 1fr))',
+              gap: 3,
+            }}>
               {questions.map((_, idx) => {
                 const isActive = idx === currentIdx;
                 const isFlagged = flagged[idx];
@@ -797,13 +848,14 @@ export default function MockExam({ onClose }) {
                   <button
                     key={idx}
                     onClick={() => { setCurrentIdx(idx); setShowAnswer(false); }}
+                    aria-label={`Question ${idx + 1}`}
                     style={{
-                      width: 28, height: 28, borderRadius: 6,
+                      aspectRatio: '1', borderRadius: 5,
                       border: isFlagged ? `2px solid ${theme.warning}` : 'none',
                       background: bg, color: (isActive || isAnswered) ? '#FFF' : theme.textDim,
-                      fontSize: 10, fontWeight: 600, cursor: 'pointer',
+                      fontSize: 9, fontWeight: 600, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'inherit',
+                      fontFamily: 'inherit', padding: 0, minHeight: 0,
                     }}
                   >
                     {idx + 1}
@@ -811,17 +863,17 @@ export default function MockExam({ onClose }) {
                 );
               })}
             </div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-              <span style={{ fontSize: 11, color: theme.textMuted }}>
-                <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: theme.success, marginRight: 4, verticalAlign: 'middle' }} />
+            <div style={{ display: 'flex', gap: 14, marginTop: 10, justifyContent: 'center' }}>
+              <span style={{ fontSize: 11, color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: theme.success }} />
                 Correct
               </span>
-              <span style={{ fontSize: 11, color: theme.textMuted }}>
-                <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: theme.error, marginRight: 4, verticalAlign: 'middle' }} />
+              <span style={{ fontSize: 11, color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: theme.error }} />
                 Wrong
               </span>
-              <span style={{ fontSize: 11, color: theme.textMuted }}>
-                <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: theme.border, border: `2px solid ${theme.warning}`, marginRight: 4, verticalAlign: 'middle' }} />
+              <span style={{ fontSize: 11, color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: theme.border, border: `2px solid ${theme.warning}` }} />
                 Flagged
               </span>
             </div>
@@ -846,28 +898,48 @@ export default function MockExam({ onClose }) {
           background: passed
             ? `linear-gradient(135deg, ${theme.successBg}, ${theme.surface})`
             : `linear-gradient(135deg, ${theme.errorBg}, ${theme.surface})`,
+          border: `1px solid ${passed ? theme.success : theme.error}20`,
         }}>
-          <div style={{ fontSize: 56, marginBottom: 8 }}>
-            {passed ? '🎉' : '📚'}
+          <div style={{
+            width: 64, height: 64, borderRadius: 32,
+            background: passed ? theme.success + '20' : theme.error + '20',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 12px',
+          }}>
+            {passed ? (
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={theme.success} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            ) : (
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={theme.error} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            )}
           </div>
           <div style={{
-            fontSize: 48, fontWeight: 900, color: passed ? theme.success : theme.error,
-            marginBottom: 4,
+            fontSize: 52, fontWeight: 900, color: passed ? theme.success : theme.error,
+            marginBottom: 2, letterSpacing: '-0.03em', lineHeight: 1,
           }}>
             {score}%
           </div>
           <div style={{
-            fontSize: 20, fontWeight: 700,
+            fontSize: 18, fontWeight: 700,
             color: passed ? theme.success : theme.error,
-            marginBottom: 8,
+            marginBottom: 10,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
           }}>
             {passed ? 'PASSED' : 'NOT YET'}
           </div>
-          <div style={{ fontSize: 16, color: theme.textSecondary, marginBottom: 4 }}>
-            {correct} of {total} correct
-          </div>
-          <div style={{ fontSize: 14, color: theme.textMuted }}>
-            Completed in {formatTime(duration)}
+          <div style={{
+            display: 'flex', justifyContent: 'center', gap: 20,
+            paddingTop: 10, borderTop: `1px solid ${passed ? theme.success : theme.error}15`,
+          }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: theme.text }}>{correct}/{total}</div>
+              <div style={{ fontSize: 12, color: theme.textMuted }}>Correct</div>
+            </div>
+            <div style={{ width: 1, background: theme.border }} />
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: theme.text }}>{formatTime(duration)}</div>
+              <div style={{ fontSize: 12, color: theme.textMuted }}>Time</div>
+            </div>
           </div>
         </Card>
 

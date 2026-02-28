@@ -24,7 +24,7 @@ const TABS = [
 ];
 
 export default function BottomTabBar({ activeTab, onTabChange, reviewCount = 0 }) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
 
   return (
     <div style={{
@@ -32,13 +32,15 @@ export default function BottomTabBar({ activeTab, onTabChange, reviewCount = 0 }
       bottom: 0,
       left: 0,
       right: 0,
-      height: 56,
-      background: theme.tabBar,
+      background: isDark ? 'rgba(30,30,30,0.92)' : 'rgba(255,255,255,0.92)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
       borderTop: `1px solid ${theme.tabBarBorder}`,
       display: 'flex',
       justifyContent: 'space-around',
-      alignItems: 'center',
-      paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      alignItems: 'flex-start',
+      paddingTop: 6,
+      paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))',
       zIndex: 100,
     }}>
       {TABS.map(tab => {
@@ -49,6 +51,8 @@ export default function BottomTabBar({ activeTab, onTabChange, reviewCount = 0 }
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
+            aria-label={tab.label}
+            aria-current={isActive ? 'page' : undefined}
             style={{
               flex: 1,
               display: 'flex',
@@ -67,7 +71,7 @@ export default function BottomTabBar({ activeTab, onTabChange, reviewCount = 0 }
             {isActive && (
               <div style={{
                 position: 'absolute',
-                top: 0,
+                top: -1,
                 left: '25%',
                 right: '25%',
                 height: 2,
@@ -75,7 +79,12 @@ export default function BottomTabBar({ activeTab, onTabChange, reviewCount = 0 }
                 background: theme.tabActive,
               }} />
             )}
-            {tab.icon(color)}
+            <div style={{
+              transition: 'transform 0.15s ease',
+              transform: isActive ? 'scale(1.05)' : 'scale(1)',
+            }}>
+              {tab.icon(color)}
+            </div>
             <span style={{
               fontSize: 11,
               fontWeight: isActive ? 600 : 400,
@@ -87,21 +96,22 @@ export default function BottomTabBar({ activeTab, onTabChange, reviewCount = 0 }
             {tab.id === 'review' && reviewCount > 0 && (
               <div style={{
                 position: 'absolute',
-                top: 4,
+                top: 2,
                 right: '50%',
                 marginRight: -20,
                 background: theme.error,
                 color: '#FFF',
                 fontSize: 10,
                 fontWeight: 700,
-                width: 18,
+                minWidth: 18,
                 height: 18,
                 borderRadius: 9,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                padding: '0 4px',
               }}>
-                {reviewCount > 9 ? '9+' : reviewCount}
+                {reviewCount > 99 ? '99+' : reviewCount}
               </div>
             )}
           </button>

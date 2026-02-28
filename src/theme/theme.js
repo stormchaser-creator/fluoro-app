@@ -27,7 +27,7 @@ export const THEMES = {
     answerBorder: '#059669',
     answerText: '#065F46',
     rsvpBg: '#FFFFFF',
-    tabBar: '#FFFFFF',
+    tabBar: 'rgba(255,255,255,0.92)',
     tabBarBorder: '#E2E8F0',
     tabActive: '#0D7377',
     tabInactive: '#A0AEC0',
@@ -58,12 +58,12 @@ export const THEMES = {
     answerBorder: '#34D399',
     answerText: '#A7F3D0',
     rsvpBg: '#000000',
-    tabBar: '#1E1E1E',
-    tabBarBorder: '#333333',
+    tabBar: 'rgba(30,30,30,0.92)',
+    tabBarBorder: '#2A2A2A',
     tabActive: '#4DB6AC',
     tabInactive: '#666666',
-    shadow: 'none',
-    shadowMd: 'none',
+    shadow: '0 1px 3px rgba(0,0,0,0.3)',
+    shadowMd: '0 4px 6px rgba(0,0,0,0.4)',
   },
 };
 
@@ -77,6 +77,7 @@ export const DOMAIN_COLORS = {
     radbio: '#059669',
     skineffects: '#DB2777',
     qa: '#0891B2',
+    patientcare: '#EA580C',
   },
   dark: {
     equipment: '#60A5FA',
@@ -86,6 +87,7 @@ export const DOMAIN_COLORS = {
     radbio: '#34D399',
     skineffects: '#F472B6',
     qa: '#22D3EE',
+    patientcare: '#FB923C',
   },
 };
 

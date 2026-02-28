@@ -6,6 +6,7 @@ function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -174,6 +175,32 @@ function AuthPage() {
     fontFamily: 'inherit',
   };
 
+  const eyeIcon = (
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      style={{
+        position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+        background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+        color: colors.textMuted, display: 'flex', alignItems: 'center',
+      }}
+      tabIndex={-1}
+      aria-label={showPassword ? 'Hide password' : 'Show password'}
+    >
+      {showPassword ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      )}
+    </button>
+  );
+
   return (
     <div style={{
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -185,24 +212,35 @@ function AuthPage() {
       justifyContent: 'center',
       padding: '24px 20px',
     }}>
+      <style>{`
+        @keyframes authFadeIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes logoPulse {
+          0%, 100% { box-shadow: 0 8px 24px rgba(13,115,119,0.3); }
+          50% { box-shadow: 0 8px 32px rgba(77,182,172,0.45); }
+        }
+      `}</style>
       <div style={{
         width: '100%',
         maxWidth: 400,
+        animation: 'authFadeIn 0.5s ease-out',
       }}>
         {/* Logo + App Name */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div style={{
-            width: 64,
-            height: 64,
-            borderRadius: 20,
+            width: 72,
+            height: 72,
+            borderRadius: 22,
             background: `linear-gradient(135deg, ${colors.primaryDark} 0%, ${colors.primary} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 16px',
-            boxShadow: '0 8px 24px rgba(13,115,119,0.3)',
+            margin: '0 auto 18px',
+            animation: 'logoPulse 3s ease-in-out infinite',
           }}>
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 2 L12 22" />
               <path d="M2 12 L22 12" />
@@ -210,11 +248,11 @@ function AuthPage() {
             </svg>
           </div>
           <h1 style={{
-            fontSize: 24,
+            fontSize: 26,
             fontWeight: 800,
             color: colors.text,
-            margin: '0 0 4px',
-            letterSpacing: '-0.02em',
+            margin: '0 0 6px',
+            letterSpacing: '-0.03em',
           }}>
             Fluoro<span style={{ color: colors.primary }}>Path</span>
           </h1>
@@ -223,8 +261,9 @@ function AuthPage() {
             color: colors.textMuted,
             margin: 0,
             fontWeight: 500,
+            letterSpacing: '0.02em',
           }}>
-            CA Fluoroscopy Exam Prep
+            California Fluoroscopy Exam Prep
           </p>
         </div>
 
@@ -365,16 +404,19 @@ function AuthPage() {
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: colors.textMuted, marginBottom: 6 }}>
                     Password
                   </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={mode === 'signup' ? 'At least 6 characters' : 'Enter your password'}
-                    autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                    style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = colors.primary; }}
-                    onBlur={(e) => { e.target.style.borderColor = colors.border; }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={mode === 'signup' ? 'At least 6 characters' : 'Enter your password'}
+                      autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                      style={{ ...inputStyle, paddingRight: 44 }}
+                      onFocus={(e) => { e.target.style.borderColor = colors.primary; }}
+                      onBlur={(e) => { e.target.style.borderColor = colors.border; }}
+                    />
+                    {eyeIcon}
+                  </div>
                 </div>
               )}
 
@@ -384,16 +426,19 @@ function AuthPage() {
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: colors.textMuted, marginBottom: 6 }}>
                     Confirm Password
                   </label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter your password"
-                    autoComplete="new-password"
-                    style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = colors.primary; }}
-                    onBlur={(e) => { e.target.style.borderColor = colors.border; }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter your password"
+                      autoComplete="new-password"
+                      style={{ ...inputStyle, paddingRight: 44 }}
+                      onFocus={(e) => { e.target.style.borderColor = colors.primary; }}
+                      onBlur={(e) => { e.target.style.borderColor = colors.border; }}
+                    />
+                    {eyeIcon}
+                  </div>
                 </div>
               )}
 
@@ -429,14 +474,17 @@ function AuthPage() {
         {/* Footer */}
         <div style={{
           textAlign: 'center',
-          marginTop: 24,
+          marginTop: 28,
           fontSize: 12,
           color: colors.textDim,
-          lineHeight: 1.5,
+          lineHeight: 1.6,
         }}>
-          Your data is synced securely across devices.
-          <br />
-          FluoroPath v2.0
+          <div style={{ marginBottom: 4 }}>
+            Your progress syncs securely across all devices.
+          </div>
+          <div style={{ color: colors.textDim, opacity: 0.7 }}>
+            FluoroPath v2.1
+          </div>
         </div>
       </div>
     </div>

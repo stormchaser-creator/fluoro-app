@@ -78,27 +78,36 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
     setQuizIndex(prev => Math.min(prev + 1, filteredQuestions.length - 1));
   };
 
-  // Sub-nav pills
+  // Sub-nav segmented control
   const subNav = (
-    <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+    <div style={{
+      display: 'flex', gap: 0, marginBottom: 20,
+      backgroundColor: theme.surfaceHover,
+      borderRadius: 12,
+      padding: 3,
+    }}>
       {[
-        { id: 'read', label: 'Read' },
-        { id: 'quiz', label: 'Quiz' },
-        { id: 'topics', label: 'Topics' },
+        { id: 'read', label: 'Read', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> },
+        { id: 'quiz', label: 'Quiz', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> },
+        { id: 'topics', label: 'Topics', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> },
       ].map(s => (
         <button
           key={s.id}
           onClick={() => setSubView(s.id)}
           style={{
             flex: 1, padding: '10px 16px', borderRadius: 10,
-            border: subView === s.id ? `2px solid ${theme.primary}` : `1px solid ${theme.border}`,
-            background: subView === s.id ? theme.primaryLight : theme.surface,
+            border: 'none',
+            background: subView === s.id ? theme.surface : 'transparent',
             color: subView === s.id ? theme.primary : theme.textMuted,
-            fontWeight: subView === s.id ? 600 : 400,
-            fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
-            minHeight: 44,
+            fontWeight: subView === s.id ? 700 : 500,
+            fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
+            minHeight: 42,
+            transition: 'all 0.2s',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            boxShadow: subView === s.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
           }}
         >
+          {s.icon}
           {s.label}
         </button>
       ))}
@@ -373,8 +382,8 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
           </div>
           {!showAnswer ? (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ color: theme.textDim, fontSize: 14, marginBottom: 12, fontStyle: 'italic' }}>
-                Try to answer from memory before revealing...
+              <div style={{ color: theme.textDim, fontSize: 14, marginBottom: 14 }}>
+                Think about your answer, then reveal.
               </div>
               <Button onClick={() => setShowAnswer(true)} fullWidth>
                 Reveal Answer
@@ -386,14 +395,25 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
                 background: theme.answerBg, borderRadius: 10, padding: 16,
                 marginBottom: 16, borderLeft: `3px solid ${theme.answerBorder}`,
               }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: theme.answerBorder,
+                  textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6,
+                }}>
+                  Answer
+                </div>
                 <div style={{ color: theme.answerText, fontSize: 15, lineHeight: 1.7 }}>{q.a}</div>
               </div>
-              <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{
+                fontSize: 13, color: theme.textMuted, textAlign: 'center', marginBottom: 12,
+              }}>
+                Did you get it right?
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
                 <Button variant="danger" onClick={() => markQuiz(false)} style={{ flex: 1 }}>
-                  ✕ Wrong
+                  Missed It
                 </Button>
                 <Button variant="success" onClick={() => markQuiz(true)} style={{ flex: 1 }}>
-                  ✓ Right
+                  Got It
                 </Button>
               </div>
             </div>

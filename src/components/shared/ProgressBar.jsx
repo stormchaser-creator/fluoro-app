@@ -20,10 +20,11 @@ export default function ProgressBar({ value = 0, color, height = 8, label, showP
       }}>
         <div style={{
           height: '100%',
-          width: `${Math.min(value, 100)}%`,
+          width: `${Math.min(Math.max(value, 0), 100)}%`,
           borderRadius: height / 2,
           background: barColor,
-          transition: 'width 0.5s ease-out',
+          transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+          minWidth: value > 0 ? 4 : 0,
         }} />
       </div>
     </div>

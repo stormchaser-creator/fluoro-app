@@ -106,23 +106,29 @@ export default function HomeTab({ onNavigate }) {
 
   return (
     <div>
-      {/* Greeting */}
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 4 }}>
+      {/* Phase Tag */}
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <span style={{
+          fontSize: 13, color: phase?.color || theme.textMuted, fontWeight: 600,
+          padding: '4px 14px', borderRadius: 20,
+          background: (phase?.color || theme.textMuted) + '12',
+          letterSpacing: '0.02em',
+        }}>
           {phase?.name} Phase &middot; Day {state.currentDay} of 30
-        </div>
+        </span>
       </div>
 
       {/* Readiness Ring */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-        <ProgressRing value={readiness} size={140} strokeWidth={10} label="Exam Readiness" />
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+        <ProgressRing value={readiness} size={148} strokeWidth={10} label="Exam Readiness" />
       </div>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <div style={{
           fontSize: 14, fontWeight: 600, color: readinessInfo.color,
           display: 'inline-block',
-          padding: '4px 16px', borderRadius: 20,
+          padding: '5px 18px', borderRadius: 20,
           background: readinessInfo.color + '15',
+          letterSpacing: '0.01em',
         }}>
           {readinessInfo.label}
         </div>
@@ -136,27 +142,36 @@ export default function HomeTab({ onNavigate }) {
         style={{
           marginBottom: 16, cursor: 'pointer',
           background: `linear-gradient(135deg, ${theme.primaryLight}, ${theme.surface})`,
-          border: `2px solid ${theme.primary}30`,
+          border: `1px solid ${theme.primary}25`,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
-            width: 56, height: 56, borderRadius: 14,
-            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark})`,
+            width: 52, height: 52, borderRadius: 14,
+            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark || theme.primary})`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 28, boxShadow: `0 4px 12px ${theme.primary}30`,
+            boxShadow: `0 4px 14px ${theme.primary}30`,
+            flexShrink: 0,
           }}>
-            🏆
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: theme.text, marginBottom: 2 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: theme.text, marginBottom: 2, letterSpacing: '-0.01em' }}>
               Mock Exam
             </div>
-            <div style={{ fontSize: 13, color: theme.textMuted }}>
-              90 questions, 2-hour timer — simulate the real ARRT exam
+            <div style={{ fontSize: 13, color: theme.textMuted, lineHeight: 1.4 }}>
+              90 questions &middot; 2 hours &middot; ARRT-weighted
             </div>
           </div>
-          <span style={{ color: theme.primary, fontSize: 22, fontWeight: 700 }}>›</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
         </div>
         {bestExamScore !== null && (
           <div style={{
@@ -164,7 +179,7 @@ export default function HomeTab({ onNavigate }) {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <span style={{ fontSize: 13, color: theme.textMuted }}>
-              Best score: <strong style={{ color: bestExamScore >= 75 ? theme.success : theme.warning }}>{bestExamScore}%</strong>
+              Best: <strong style={{ color: bestExamScore >= 75 ? theme.success : theme.warning }}>{bestExamScore}%</strong>
             </span>
             <span style={{ fontSize: 13, color: theme.textMuted }}>
               {examHistory.length} exam{examHistory.length !== 1 ? 's' : ''} taken
@@ -203,25 +218,30 @@ export default function HomeTab({ onNavigate }) {
               onClick={() => onNavigate('study', resumeDomain ? { domain: resumeDomain } : undefined)}
               style={{
                 flex: 1, padding: '12px 20px', borderRadius: 10,
-                border: 'none', background: theme.primary, color: '#FFF',
+                border: 'none',
+                background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark || theme.primary})`,
+                color: '#FFF',
                 fontWeight: 600, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
                 minHeight: 48,
+                boxShadow: `0 2px 8px ${theme.primary}30`,
+                transition: 'transform 0.1s, box-shadow 0.2s',
               }}
             >
-              {hasProgress ? 'Continue Session' : 'Start Session'}
+              {hasProgress ? 'Continue Studying' : 'Start Session'}
             </button>
             <button
               onClick={() => dispatch({ type: 'TOGGLE_DAY', day: state.currentDay })}
               style={{
                 padding: '12px 20px', borderRadius: 10,
-                border: state.completedDays[state.currentDay] ? 'none' : `2px solid ${theme.border}`,
+                border: state.completedDays[state.currentDay] ? 'none' : `1.5px solid ${theme.border}`,
                 background: state.completedDays[state.currentDay] ? theme.success : 'transparent',
                 color: state.completedDays[state.currentDay] ? '#FFF' : theme.textMuted,
                 fontWeight: 600, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
                 minHeight: 48,
+                transition: 'all 0.2s',
               }}
             >
-              {state.completedDays[state.currentDay] ? '✓ Done' : 'Mark Done'}
+              {state.completedDays[state.currentDay] ? 'Done' : 'Mark Done'}
             </button>
           </div>
         </Card>
@@ -230,20 +250,32 @@ export default function HomeTab({ onNavigate }) {
       {/* Quick Actions */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
         {[
-          { label: 'Quiz', sub: `${totalQ} questions`, icon: '⚡', tab: 'study', color: theme.primary },
-          { label: 'Review', sub: `${study.missedQuestions.length} missed`, icon: '🔄', tab: 'review', color: theme.warning },
-          { label: 'Numbers', sub: 'Key values', icon: '🔢', tab: 'review', color: '#D97706' },
-          { label: 'Progress', sub: `${completedCount}/30 days`, icon: '📊', tab: 'progress', color: theme.success },
+          {
+            label: 'Quiz', sub: `${totalQ} questions`, tab: 'study', color: theme.primary,
+            svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+          },
+          {
+            label: 'Review', sub: `${study.missedQuestions.length} missed`, tab: 'review', color: theme.warning,
+            svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
+          },
+          {
+            label: 'Numbers', sub: 'Key values', tab: 'review', color: '#D97706',
+            svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>,
+          },
+          {
+            label: 'Progress', sub: `${completedCount}/30 days`, tab: 'progress', color: theme.success,
+            svg: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+          },
         ].map(item => (
           <Card key={item.label} onClick={() => onNavigate(item.tab)} padding="sm" style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
                 width: 40, height: 40, borderRadius: 10,
                 background: item.color + '15',
+                color: item.color,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 20,
               }}>
-                {item.icon}
+                {item.svg}
               </div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{item.label}</div>
@@ -292,28 +324,36 @@ export default function HomeTab({ onNavigate }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', marginBottom: 16 }}>
         <button
           onClick={() => dispatch({ type: 'SET_DAY', day: state.currentDay - 1 })}
+          disabled={state.currentDay <= 1}
           style={{
             width: 40, height: 40, borderRadius: 10,
             border: `1px solid ${theme.border}`, background: theme.surface,
-            color: theme.textMuted, fontSize: 16, cursor: 'pointer',
+            color: state.currentDay <= 1 ? theme.textDim : theme.textMuted,
+            fontSize: 16, cursor: state.currentDay <= 1 ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            opacity: state.currentDay <= 1 ? 0.5 : 1,
+            transition: 'opacity 0.2s',
           }}
         >
-          ‹
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div style={{ fontSize: 14, color: theme.textMuted, minWidth: 80, textAlign: 'center' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: theme.textSecondary, minWidth: 100, textAlign: 'center' }}>
           Day {state.currentDay} of 30
         </div>
         <button
           onClick={() => dispatch({ type: 'SET_DAY', day: state.currentDay + 1 })}
+          disabled={state.currentDay >= 30}
           style={{
             width: 40, height: 40, borderRadius: 10,
             border: `1px solid ${theme.border}`, background: theme.surface,
-            color: theme.textMuted, fontSize: 16, cursor: 'pointer',
+            color: state.currentDay >= 30 ? theme.textDim : theme.textMuted,
+            fontSize: 16, cursor: state.currentDay >= 30 ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            opacity: state.currentDay >= 30 ? 0.5 : 1,
+            transition: 'opacity 0.2s',
           }}
         >
-          ›
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
 
