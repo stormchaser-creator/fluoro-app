@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { syncToCloud, restoreFromCloud } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 
 const StudyContext = createContext();
 
@@ -125,13 +126,14 @@ function studyReducer(state, action) {
 
 export function StudyProvider({ children }) {
   const [state, dispatch] = useReducer(studyReducer, null, loadState);
+  const { user } = useAuth();
   const cloudRestored = useRef(false);
 
-  // Restore from cloud on mount (if cloud has better data)
+  // Restore from cloud on mount when authenticated
   useEffect(() => {
-    if (cloudRestored.current) return;
+    if (cloudRestored.current || !user) return;
     cloudRestored.current = true;
-    restoreFromCloud(CLOUD_TABLE).then(cloudState => {
+    restoreFromCloud(CLOUD_TABLE, user.id).then(cloudState => {
       if (cloudState) {
         const local = loadState();
         const best = pickBestState(local, cloudState);
@@ -140,15 +142,22 @@ export function StudyProvider({ children }) {
         }
       }
     });
-  }, []);
+  }, [user]);
+
+  // Reset cloud restore flag when user changes
+  useEffect(() => {
+    cloudRestored.current = false;
+  }, [user?.id]);
 
   // Persist to localStorage + cloud on every state change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch { /* silently fail */ }
-    syncToCloud(CLOUD_TABLE, state);
-  }, [state]);
+    if (user) {
+      syncToCloud(CLOUD_TABLE, state, user.id);
+    }
+  }, [state, user]);
 
   return (
     <StudyContext.Provider value={{ study: state, studyDispatch: dispatch }}>

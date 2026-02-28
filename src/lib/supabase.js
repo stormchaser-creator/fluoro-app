@@ -5,30 +5,82 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Stable device ID for identifying this browser
-function getDeviceId() {
-  let id = localStorage.getItem('fluoro_device_id');
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem('fluoro_device_id', id);
-  }
-  return id;
+// ─── Auth Helpers ───────────────────────────────────────────
+
+export async function signUp(email, password) {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+  return data;
 }
 
-export const DEVICE_ID = getDeviceId();
+export async function signIn(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+}
 
-/**
- * Save state to a Supabase table. Upserts by device_id.
- * Debounced to avoid excessive network calls during rapid state changes.
- */
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
+
+export async function resetPassword(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) throw error;
+}
+
+export async function getUser() {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
+export function onAuthStateChange(callback) {
+  return supabase.auth.onAuthStateChange(callback);
+}
+
+// ─── Profile Management ─────────────────────────────────────
+
+export async function ensureProfile(authUserId) {
+  if (!authUserId) return null;
+
+  // Check if profile exists for this auth user
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('auth_user_id', authUserId)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  // Create new profile linked to auth user
+  const newId = crypto.randomUUID();
+  const { data: created, error } = await supabase
+    .from('profiles')
+    .insert({ id: newId, auth_user_id: authUserId })
+    .select()
+    .single();
+
+  if (error) {
+    console.warn('[fluoro] Failed to create profile:', error.message);
+    return null;
+  }
+  return created;
+}
+
+// ─── Cloud Sync (auth-based) ────────────────────────────────
+// Uses auth_user_id instead of device_id for data ownership.
+
 const syncTimers = {};
-export function syncToCloud(table, state) {
-  if (syncTimers[table]) clearTimeout(syncTimers[table]);
-  syncTimers[table] = setTimeout(async () => {
+
+export function syncToCloud(table, state, authUserId) {
+  if (!authUserId) return;
+  const timerKey = `${table}-${authUserId}`;
+  if (syncTimers[timerKey]) clearTimeout(syncTimers[timerKey]);
+  syncTimers[timerKey] = setTimeout(async () => {
     try {
       await supabase.from(table).upsert(
-        { device_id: DEVICE_ID, state, updated_at: new Date().toISOString() },
-        { onConflict: 'device_id' }
+        { auth_user_id: authUserId, state, updated_at: new Date().toISOString() },
+        { onConflict: 'auth_user_id' }
       );
     } catch (e) {
       console.warn(`[fluoro] Cloud sync failed for ${table}:`, e.message);
@@ -36,16 +88,13 @@ export function syncToCloud(table, state) {
   }, 2000);
 }
 
-/**
- * Restore state from a Supabase table by device_id.
- * Returns the stored state object, or null if nothing found.
- */
-export async function restoreFromCloud(table) {
+export async function restoreFromCloud(table, authUserId) {
+  if (!authUserId) return null;
   try {
     const { data, error } = await supabase
       .from(table)
       .select('state, updated_at')
-      .eq('device_id', DEVICE_ID)
+      .eq('auth_user_id', authUserId)
       .maybeSingle();
 
     if (error) throw error;

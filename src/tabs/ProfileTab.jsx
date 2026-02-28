@@ -4,7 +4,7 @@ import { useStudy } from '../context/StudyContext';
 import { BADGES, getLevelForXp, xpForLevel, LEVEL_TITLES } from '../data/badges';
 import Card from '../components/shared/Card';
 
-export default function ProfileTab() {
+export default function ProfileTab({ onSignOut, signingOut }) {
   const { isDark, theme, toggleTheme } = useTheme();
   const { state, dispatch } = useApp();
   const { study } = useStudy();
@@ -200,7 +200,7 @@ export default function ProfileTab() {
       </Card>
 
       {/* About */}
-      <Card>
+      <Card style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
           About FluoroPath
         </div>
@@ -212,6 +212,30 @@ export default function ProfileTab() {
         <div style={{ fontSize: 12, color: theme.textDim, marginTop: 12 }}>
           Version 2.0.0
         </div>
+      </Card>
+
+      {/* Sign Out */}
+      <Card>
+        <button
+          onClick={onSignOut}
+          disabled={signingOut}
+          style={{
+            width: '100%',
+            padding: '14px 16px',
+            fontSize: 15,
+            fontWeight: 600,
+            color: theme.error,
+            backgroundColor: 'transparent',
+            border: `1px solid ${theme.error}40`,
+            borderRadius: 10,
+            cursor: signingOut ? 'not-allowed' : 'pointer',
+            opacity: signingOut ? 0.6 : 1,
+            transition: 'opacity 0.2s',
+            fontFamily: 'inherit',
+          }}
+        >
+          {signingOut ? 'Signing out...' : 'Sign Out'}
+        </button>
       </Card>
     </div>
   );
