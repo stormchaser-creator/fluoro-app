@@ -1,39 +1,78 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '../../theme/ThemeContext';
 import { useApp } from '../../context/AppContext';
 import { useStudy } from '../../context/StudyContext';
 import { XP_AWARDS } from '../../data/badges';
+
+// Punctuation pause multipliers
+function getDelayMultiplier(word) {
+  if (!word) return 1;
+  const last = word[word.length - 1];
+  if ('.!?'.includes(last)) return 3;
+  if (',;:'.includes(last)) return 1.8;
+  if ('—–)'.includes(last)) return 1.5;
+  return 1;
+}
+
+// Persist reading position per title
+const STORAGE_KEY = 'fluoro_rsvp_positions';
+
+function getSavedPosition(title) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return saved[title] || 0;
+  } catch { return 0; }
+}
+
+function savePosition(title, index) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (index <= 0) {
+      delete saved[title];
+    } else {
+      saved[title] = index;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  } catch { /* ignore */ }
+}
 
 export default function SpeedReader({ words, title, onClose }) {
   const { theme } = useTheme();
   const { state, dispatch } = useApp();
   const { studyDispatch } = useStudy();
 
-  const [index, setIndex] = useState(0);
+  const savedPos = getSavedPosition(title);
+  const [index, setIndex] = useState(savedPos > 0 && savedPos < words.length ? savedPos : 0);
   const [playing, setPlaying] = useState(false);
+  const [resumed, setResumed] = useState(savedPos > 0 && savedPos < words.length);
   const timer = useRef(null);
 
   const wpm = state.rsvpWpm;
   const chunk = state.rsvpChunk;
 
-  // Timer logic
+  // Timer logic with punctuation-aware pausing
   useEffect(() => {
     if (playing && index < words.length) {
       const msPerWord = 60000 / wpm;
+      const currentWord = words[Math.min(index + chunk - 1, words.length - 1)] || '';
+      const multiplier = getDelayMultiplier(currentWord);
+      const delay = msPerWord * chunk * multiplier;
+
       timer.current = setTimeout(() => {
         setIndex(prev => {
           const next = prev + chunk;
           if (next >= words.length) {
             setPlaying(false);
             dispatch({ type: 'ADD_XP', amount: XP_AWARDS.speedRead });
+            savePosition(title, 0); // Clear saved position on completion
             return words.length - 1;
           }
           return next;
         });
-      }, msPerWord * chunk);
+      }, delay);
     }
     return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [playing, index, wpm, chunk, words.length, dispatch]);
+  }, [playing, index, wpm, chunk, words, title, dispatch]);
 
   // Track max WPM
   useEffect(() => {
@@ -42,25 +81,42 @@ export default function SpeedReader({ words, title, onClose }) {
     }
   }, [playing, wpm, studyDispatch]);
 
+  // Save position periodically while playing
+  useEffect(() => {
+    if (playing && index > 0) {
+      savePosition(title, index);
+    }
+  }, [index, playing, title]);
+
   const currentChunk = words.slice(index, index + chunk).join(' ');
   const progress = words.length > 0 ? ((index + chunk) / words.length) * 100 : 0;
+  const progressClamped = Math.min(progress, 100);
   const timeLeft = words.length > 0 ? Math.ceil(((words.length - index) / wpm) * 60) : 0;
   const timeMin = Math.floor(timeLeft / 60);
   const timeSec = timeLeft % 60;
 
-  function handleClose() {
+  const handleClose = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     setPlaying(false);
+    savePosition(title, index);
     onClose();
-  }
+  }, [title, index, onClose]);
 
   function togglePlay() {
+    setResumed(false);
     if (index >= words.length - 1) {
       setIndex(0);
+      savePosition(title, 0);
       setPlaying(true);
     } else {
       setPlaying(p => !p);
     }
+  }
+
+  function handleRestart() {
+    setIndex(0);
+    setResumed(false);
+    savePosition(title, 0);
   }
 
   return (
@@ -96,13 +152,48 @@ export default function SpeedReader({ words, title, onClose }) {
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height: 3, background: theme.border }}>
+      {/* Progress bar — prominent */}
+      <div style={{ position: 'relative', height: 6, background: theme.border }}>
         <div style={{
           height: '100%', background: theme.primary,
-          width: `${Math.min(progress, 100)}%`, transition: 'width 0.1s',
+          width: `${progressClamped}%`,
+          transition: 'width 0.15s linear',
+          borderRadius: '0 3px 3px 0',
         }} />
       </div>
+      {/* Progress percentage + word count */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '6px 16px',
+        fontSize: 12, color: theme.textDim, fontWeight: 600,
+      }}>
+        <span>{Math.round(progressClamped)}%</span>
+        <span>{Math.min(index + chunk, words.length)} / {words.length} words</span>
+      </div>
+
+      {/* Resume banner */}
+      {resumed && !playing && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 12, padding: '10px 16px',
+          background: theme.primary + '18',
+          borderBottom: `1px solid ${theme.primary}30`,
+        }}>
+          <span style={{ fontSize: 13, color: theme.primary, fontWeight: 600 }}>
+            Resuming from word {index} of {words.length}
+          </span>
+          <button
+            onClick={handleRestart}
+            style={{
+              padding: '4px 12px', borderRadius: 6, border: `1px solid ${theme.primary}`,
+              background: 'transparent', color: theme.primary,
+              fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Start Over
+          </button>
+        </div>
+      )}
 
       {/* Main word display — tap to play/pause */}
       <div
@@ -205,11 +296,6 @@ export default function SpeedReader({ words, title, onClose }) {
           >
             ⏩
           </button>
-        </div>
-
-        {/* Word counter */}
-        <div style={{ textAlign: 'center', marginTop: 10, color: theme.textDim, fontSize: 12 }}>
-          {Math.min(index + chunk, words.length)} / {words.length} words
         </div>
       </div>
     </div>
