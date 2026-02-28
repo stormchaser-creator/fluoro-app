@@ -18,12 +18,13 @@ export function useSubscription(user) {
     }
 
     supabase
-      .from("profiles")
-      .select("subscription_status, plan_type")
+      .from("subscriptions")
+      .select("status, plan_type")
       .eq("auth_user_id", user.id)
-      .single()
+      .eq("app", "fluoropath")
+      .maybeSingle()
       .then(({ data }) => {
-        if (data?.subscription_status === "pro") {
+        if (data?.status === "pro") {
           setPlan(data.plan_type || "pro");
         } else {
           setPlan("free");
@@ -43,6 +44,7 @@ export function useSubscription(user) {
       const res = await supabase.functions.invoke("create-checkout-session", {
         body: {
           priceId,
+          app: "fluoropath",
           successUrl: window.location.origin + "/?upgraded=true",
           cancelUrl: window.location.origin + "/",
         },

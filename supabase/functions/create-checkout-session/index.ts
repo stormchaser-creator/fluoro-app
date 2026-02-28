@@ -38,7 +38,13 @@ serve(async (req) => {
       });
     }
 
-    const { priceId, successUrl, cancelUrl } = await req.json();
+    const { priceId, app, successUrl, cancelUrl } = await req.json();
+    if (!app || !["fluoropath", "credentialdomd"].includes(app)) {
+      return new Response(JSON.stringify({ error: "Invalid app parameter" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Get or create Stripe customer
     const { data: profile } = await supabase
@@ -55,6 +61,7 @@ serve(async (req) => {
       });
       customerId = customer.id;
 
+      // Save customer ID — use service role to bypass RLS
       const adminClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -65,6 +72,7 @@ serve(async (req) => {
         .eq("auth_user_id", user.id);
     }
 
+    // Determine mode from price type
     const price = await stripe.prices.retrieve(priceId);
     const mode = price.type === "recurring" ? "subscription" : "payment";
 
@@ -74,7 +82,7 @@ serve(async (req) => {
       mode,
       success_url: successUrl || `${req.headers.get("origin")}/`,
       cancel_url: cancelUrl || `${req.headers.get("origin")}/`,
-      metadata: { supabase_user_id: user.id },
+      metadata: { supabase_user_id: user.id, app },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
