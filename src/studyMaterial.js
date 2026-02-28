@@ -1473,6 +1473,221 @@ If a test falls outside tolerance, the corrective action depends on severity:
 💡 **Analogy — Quality chain:** QA is like a **preflight checklist for a pilot**. Before every flight (daily checks), the pilot walks around the plane checking obvious things. Periodically (weekly), mechanics run diagnostic tests. Annually, the plane gets a full tear-down inspection. Miss a step and 99 times out of 100 nothing happens. But that one time it matters, it really matters. The QA schedule exists because fluoroscopic equipment can silently drift out of spec — delivering too much dose or too-poor images — and nobody notices until the physicist checks or a patient is harmed.`
     },
   ],
+  patientcare: [
+    {
+      title: "The Big Picture: Why Patient Care Matters in Fluoroscopy",
+      content: `Fluoroscopy is unique among imaging modalities because **you are irradiating a living patient in real time, often during an invasive procedure**. The patient may be sedated, have IV access, be receiving contrast media, and be lying on a table for an hour or more. This is not a quick chest x-ray.
+
+Patient care in fluoroscopy means: **keeping the patient safe, informed, and comfortable before, during, and after the procedure** — while managing the additional risks of contrast reactions, sedation complications, radiation injury, and procedural errors.
+
+The ARRT allocates ~10% of the fluoroscopy exam to Patient Care. These questions test whether you understand:
+- How to identify the right patient (two identifiers)
+- How to assess and manage contrast media risks
+- How to recognize and respond to adverse reactions
+- How to handle special populations (pediatric, pregnant, geriatric)
+- How to monitor and document appropriately
+
+**The central principle:** An excellent technologist does not just produce good images — they ensure the patient leaves the procedure room in the same or better condition than they arrived.
+
+**Analogy:** Think of the fluoroscopy suite as an **operating room with a camera**. The image is important, but the patient comes first. Every decision — contrast type, sedation level, dose management — flows from "what is safest for this patient?"`,
+    },
+    {
+      title: "Patient Identification & Informed Consent",
+      content: `**Two-Patient-Identifier Rule:**
+Before EVERY procedure, verify the patient's identity using at least **two unique identifiers**:
+- Full name + date of birth (most common)
+- Full name + medical record number (MRN)
+- Room number and bed location do NOT count
+
+This must happen before contrast injection, before imaging, and before any intervention. Mix-ups happen — wrong patient, wrong side, wrong procedure. The two-identifier check is the last line of defense.
+
+**Informed Consent:**
+The patient (or legal guardian) must understand and agree to the procedure BEFORE it begins. Key elements:
+1. **Nature** of the procedure (what will happen)
+2. **Purpose** and expected benefits
+3. **Risks** — including radiation exposure, contrast reactions, procedural complications
+4. **Alternatives** — including not having the procedure
+5. **Opportunity to ask questions**
+6. Patient signature documenting agreement
+
+Consent must be obtained **before sedation** — a sedated patient cannot give valid consent. If the patient cannot consent (unconscious, minor, incapacitated), a legal representative must consent unless it is a life-threatening emergency.
+
+**Documentation:** The signed consent form must be in the medical record before the procedure begins.`,
+    },
+    {
+      title: "Contrast Media: Types, Risks, and Selection",
+      content: `**Two major categories of contrast in fluoroscopy:**
+
+**1. Iodinated contrast (IV/intra-arterial) — for vascular and CT-guided procedures:**
+- **Ionic** contrast: dissociates into charged particles. Higher osmolality → more side effects (nausea, warmth, pain). Cheaper. Rarely used now.
+- **Non-ionic** contrast: does not dissociate. Lower osmolality → fewer reactions. Standard of care for most procedures.
+- **Osmolality matters:** High-osmolality contrast media (HOCM) cause more reactions than low-osmolality (LOCM) or iso-osmolality (IOCM).
+
+**2. Barium sulfate — for GI tract studies:**
+- Inert, not absorbed, excellent mucosal coating
+- **CONTRAINDICATED if bowel perforation suspected** — barium in the peritoneal cavity causes severe, potentially fatal peritonitis
+- Use water-soluble contrast (Gastrografin) if perforation is a concern
+- But Gastrografin is hyperosmolar — if **aspirated** into the lungs it causes pulmonary edema (potentially fatal)
+- For aspiration risk: use dilute barium or non-ionic iso-osmolar contrast
+
+**Contrast selection decision tree:**
+- Vascular/IV procedure → non-ionic low-osmolality iodinated contrast
+- GI study, no perforation risk → barium sulfate
+- GI study, perforation risk → water-soluble contrast
+- GI study, aspiration risk → dilute barium or non-ionic iso-osmolar
+
+**The "iodine allergy" myth:**
+Shellfish allergy is NOT an iodine allergy. The allergen in shellfish is **tropomyosin** (a protein), not iodine. Having a shellfish allergy does not specifically increase contrast reaction risk. However, any allergy history is a general risk factor, and pre-medication should be considered for patients with multiple or severe allergies.`,
+    },
+    {
+      title: "Contrast Reactions: Recognition and Response",
+      content: `**Contrast reactions are the most dangerous acute complication in fluoroscopy.** Most are anaphylactoid (non-IgE-mediated, direct mast cell activation) — they can occur on first exposure and severity is unpredictable.
+
+**Mild Reactions (most common — self-limiting):**
+- Urticaria (hives), itching
+- Nausea, vomiting
+- Warmth, flushing
+- Nasal congestion, sneezing
+- **Management:** Observe. Usually resolves spontaneously. May give diphenhydramine for comfort.
+
+**Moderate Reactions (require treatment):**
+- Bronchospasm (wheezing, dyspnea)
+- Facial or laryngeal edema
+- Tachycardia or bradycardia
+- Hypertension or hypotension
+- Widespread urticaria
+- **Management:** Administer bronchodilator (albuterol) for wheezing. Epinephrine for worsening symptoms. IV fluids for hypotension. Monitor closely.
+
+**Severe Reactions (life-threatening):**
+- Anaphylaxis / cardiovascular collapse
+- Severe laryngeal edema (stridor, cannot speak)
+- Profound hypotension / shock
+- Cardiac arrest
+- Pulmonary edema
+- Loss of consciousness
+- **Management:** Call code team. Epinephrine IM (0.3 mg adult). Maintain airway. IV fluids wide open. CPR if needed. Do NOT delay epinephrine.
+
+**Risk factors for contrast reactions:**
+- Previous contrast reaction (risk increases from 1–2% to 17–35%)
+- Asthma (especially if poorly controlled)
+- Multiple allergies / atopic individuals
+- Cardiac disease
+- Use of beta-blockers (makes epinephrine less effective)
+
+**Pre-medication protocol** (for known prior reaction):
+- Prednisone 50 mg PO at **13, 7, and 1 hour** before procedure
+- Diphenhydramine (Benadryl) 50 mg PO/IV/IM **1 hour** before
+- Pre-medication reduces but does NOT eliminate reaction risk`,
+    },
+    {
+      title: "Renal Considerations & Metformin",
+      content: `**Contrast-Induced Nephropathy (CIN):**
+Iodinated contrast can damage kidney tubules, causing acute kidney injury. Risk factors:
+- Pre-existing renal impairment (most important)
+- Diabetes (especially with nephropathy)
+- Dehydration
+- Large contrast volumes
+- Concurrent nephrotoxic medications (NSAIDs, aminoglycosides)
+
+**eGFR thresholds:**
+- **eGFR ≥ 60:** Proceed normally
+- **eGFR 30–60:** Pre-hydrate with IV saline before and after. Use lowest possible contrast volume. Use low-osmolality or iso-osmolality contrast.
+- **eGFR < 30:** Avoid iodinated contrast if possible. If essential, aggressive hydration and nephrology consultation.
+
+**The Metformin Rule:**
+Metformin is a common diabetes medication cleared by the kidneys. If contrast damages the kidneys → metformin accumulates → **lactic acidosis** (potentially fatal).
+- **Hold metformin for 48 hours AFTER** contrast administration
+- **Recheck renal function** (eGFR) before restarting
+- Do NOT need to hold metformin before the procedure if eGFR is normal
+
+**Hydration protocol:**
+- IV normal saline (0.9% NaCl) at 1–1.5 mL/kg/hr
+- Start 6–12 hours before the procedure
+- Continue 6–12 hours after
+- Oral hydration is acceptable for outpatients with normal renal function`,
+    },
+    {
+      title: "Sedation Monitoring & Special Populations",
+      content: `**Sedation Levels:**
+1. **Minimal sedation (anxiolysis):** Patient is awake, responds normally. Minimal monitoring needed.
+2. **Moderate sedation (conscious sedation):** Patient responds purposefully to verbal or light tactile stimulation. Requires pulse ox, BP, ECG, capnography.
+3. **Deep sedation:** Patient responds only to repeated or painful stimulation. Requires same monitoring as moderate + dedicated monitoring personnel.
+4. **General anesthesia:** Not arousable. Requires anesthesiologist, full airway management.
+
+**Monitoring requirements during moderate sedation:**
+- Blood pressure (every 5 minutes)
+- Heart rate and rhythm (continuous ECG)
+- Oxygen saturation (continuous pulse oximetry)
+- Respiratory rate (visual observation)
+- Level of consciousness (verbal/tactile response)
+- Capnography (recommended — detects hypoventilation before desaturation)
+
+**Pediatric Considerations:**
+- Children are **2–3× more radiosensitive** than adults
+- Use lower kVp, lower mA, tighter collimation, pulsed fluoroscopy
+- Remove anti-scatter grid for small patients (< 10 cm thickness) — reduces dose ~50%
+- Use last-image-hold instead of additional exposures
+- Immobilization devices (Pigg-O-Stat, sandbags, Velcro straps) prevent repeat exposures from motion
+- Never use human hand-holding if immobilization devices are available
+
+**Pregnant Patient Management:**
+- Screen ALL women of childbearing age: "Is there any possibility you could be pregnant?"
+- If pregnancy cannot be ruled out → pregnancy test before procedure
+- If pregnant: consult with physician, use lead shielding over uterus when possible, minimize fluoroscopy time, and document discussion of risks/benefits
+
+**Geriatric Considerations:**
+- Impaired renal function → check eGFR, adjust contrast volume, pre-hydrate
+- Increased fall risk → assist with all transfers, raise bed rails
+- Hearing/vision impairment → speak clearly, use written instructions
+- Fragile veins → careful IV access, smaller gauge needle, avoid hand veins
+- Polypharmacy → review medications for interactions with sedation drugs
+- Cognitive impairment → may need caregiver present for consent process
+- Hypothermia risk → keep patient warm with blankets during long procedures`,
+    },
+    {
+      title: "Documentation, Safety, and Post-Procedure Care",
+      content: `**Required Documentation After Every Fluoroscopic Procedure:**
+- Fluoroscopy time (cumulative)
+- Estimated dose: Ka,r (reference air kerma) and/or PKA (kerma-area product)
+- Number and type of acquisition images
+- Contrast type, volume, and route
+- Patient positioning
+- Any adverse events and response
+- Patient condition at end of procedure
+- Post-procedure instructions given
+
+California requires logging fluoroscopy time for every procedure. Many facilities also require PKA documentation. This data is essential for tracking cumulative patient dose and identifying procedures that exceed reference levels.
+
+**Post-Procedure Monitoring:**
+- Observe patient **20–30 minutes minimum** after contrast injection
+- Monitor vital signs per institutional protocol
+- Assess IV site for extravasation signs
+- Encourage oral hydration to promote renal contrast clearance
+- Provide written discharge instructions including:
+  - Signs/symptoms requiring emergency care (delayed contrast reaction, procedure complications)
+  - Activity restrictions
+  - Follow-up appointment information
+
+**Extravasation Management:**
+If contrast leaks out of the vein during injection:
+1. Stop injection immediately
+2. Aspirate any contrast from the IV catheter if possible
+3. Elevate the affected limb above heart level
+4. Apply cold compress (ice pack wrapped in cloth) for 15–20 minutes
+5. Monitor for compartment syndrome (severe pain, swelling, loss of pulse/sensation)
+6. Small extravasations (< 10 mL) usually resolve spontaneously
+7. Large extravasations (> 100 mL) or signs of compartment syndrome → surgical consultation
+
+**Fall Prevention:**
+- Assess fall risk before the procedure
+- Lock bed wheels during transfers
+- Assist patient on and off the table
+- Use side rails during the procedure
+- If a fall occurs: do NOT move the patient, assess for injury, document everything, complete incident report
+
+**The bottom line for the exam:** Patient care questions test practical knowledge — can you keep the patient safe? Know the contrast reaction algorithm cold. Know the two-identifier rule. Know when barium is contraindicated. Know the metformin rule. These are the high-yield items.`,
+    },
+  ],
 };
 
 export default STUDY_MATERIAL;
