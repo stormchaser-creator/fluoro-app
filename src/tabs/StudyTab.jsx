@@ -348,7 +348,6 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
     if (!q) return <div style={{ color: theme.textMuted }}>No questions available.</div>;
     const domain = DOMAINS.find(d => d.id === q.domain);
     const dc = domainColors[q.domain] || domain?.color;
-    const atEnd = safeIndex >= filteredQuestions.length - 1;
 
     return (
       <div>
