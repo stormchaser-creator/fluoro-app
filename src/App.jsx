@@ -133,7 +133,7 @@ function AppShell() {
       </div>
       <BottomTabBar
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={(tab) => navigateTo(tab)}
         reviewCount={reviewCount}
       />
       {rsvp && (

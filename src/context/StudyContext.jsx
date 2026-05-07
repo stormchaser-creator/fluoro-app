@@ -7,6 +7,14 @@ const StudyContext = createContext();
 const STORAGE_KEY = 'fluoro_study_state';
 const CLOUD_TABLE = 'fluoro_study_state';
 
+const defaultPosition = {
+  subView: 'read',         // 'read' | 'quiz' | 'topics'
+  readDomain: null,
+  expandedSection: null,
+  quizDomain: null,
+  quizIndex: 0,
+};
+
 const defaultState = {
   quizResults: {},
   flaggedQuestions: [],
@@ -19,6 +27,8 @@ const defaultState = {
   lateNightSessions: 0,
   readSections: {},  // { domainId: [0, 2, 5] } — indices of read sections
   examHistory: [],   // [{ date, score, total, domainScores, questionsMissed }]
+  position: defaultPosition,
+  quizOrder: null,   // stable permutation of QUESTIONS indices, null = needs generation
 };
 
 function migrateQuizResults() {
@@ -36,7 +46,14 @@ function migrateQuizResults() {
 function loadState() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return { ...defaultState, ...JSON.parse(saved) };
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        ...defaultState,
+        ...parsed,
+        position: { ...defaultPosition, ...(parsed.position || {}) },
+      };
+    }
     const oldResults = migrateQuizResults();
     if (oldResults) return { ...defaultState, quizResults: oldResults };
     return defaultState;
@@ -58,7 +75,11 @@ function pickBestState(local, cloud) {
 function studyReducer(state, action) {
   switch (action.type) {
     case 'HYDRATE_FROM_CLOUD':
-      return { ...state, ...action.state };
+      return {
+        ...state,
+        ...action.state,
+        position: { ...defaultPosition, ...(action.state.position || state.position) },
+      };
     case 'RECORD_ANSWER': {
       const { domain, correct, questionIndex } = action;
       const prev = state.quizResults[domain] || { correct: 0, wrong: 0 };
@@ -119,6 +140,19 @@ function studyReducer(state, action) {
       if (newHistory.length > 50) newHistory.shift();
       return { ...state, examHistory: newHistory };
     }
+    case 'SET_POSITION':
+      return {
+        ...state,
+        position: { ...defaultPosition, ...state.position, ...action.position },
+      };
+    case 'SET_QUIZ_ORDER':
+      return { ...state, quizOrder: action.order };
+    case 'RESET_QUIZ_PROGRESS':
+      return {
+        ...state,
+        quizOrder: action.order ?? null,
+        position: { ...state.position, quizIndex: 0 },
+      };
     default:
       return state;
   }
