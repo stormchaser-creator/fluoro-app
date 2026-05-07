@@ -10,34 +10,62 @@ import Button from '../components/shared/Button';
 import ProgressBar from '../components/shared/ProgressBar';
 import { getIllustration } from '../components/study/StudyIllustrations';
 
+function shuffleIndices(n) {
+  const arr = Array.from({ length: n }, (_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
   const { theme, domainColors } = useTheme();
   const { state, dispatch } = useApp();
   const { study, studyDispatch } = useStudy();
 
-  const [subView, setSubView] = useState('read'); // 'read' | 'quiz' | 'topics'
-  const [readDomain, setReadDomain] = useState(null);
-  const [expandedSection, setExpandedSection] = useState(null);
-  const [quizDomain, setQuizDomain] = useState(null);
-  const [quizIndex, setQuizIndex] = useState(0);
+  // Read persistent position from context; never read raw values without the
+  // defaultPosition fallback in StudyContext loader (older saved states won't have it).
+  const { subView = 'read', readDomain = null, expandedSection = null, quizDomain = null, quizIndex = 0 } = study.position || {};
+
+  const setPosition = (patch) => studyDispatch({ type: 'SET_POSITION', position: patch });
+  const setSubView = (v) => setPosition({ subView: v });
+  const setReadDomain = (v) => setPosition({ readDomain: v });
+  const setExpandedSection = (v) => setPosition({ expandedSection: v });
+  const setQuizDomain = (v) => setPosition({ quizDomain: v, quizIndex: 0 });
+  const setQuizIndex = (v) => setPosition({ quizIndex: typeof v === 'function' ? v(quizIndex) : v });
+
   const [showAnswer, setShowAnswer] = useState(false);
   const [expandedDomain, setExpandedDomain] = useState(null);
+
+  // Generate a stable shuffle of QUESTIONS exactly once. After this runs the
+  // order is persisted to localStorage + cloud, so reloads/remounts keep it.
+  useEffect(() => {
+    if (!study.quizOrder || study.quizOrder.length !== QUESTIONS.length) {
+      studyDispatch({ type: 'SET_QUIZ_ORDER', order: shuffleIndices(QUESTIONS.length) });
+    }
+  }, [study.quizOrder, studyDispatch]);
 
   // Handle navigation context from HomeTab (resume where left off)
   useEffect(() => {
     if (!navContext?.domain) return;
     // Small delay to ensure study state is hydrated from cloud
     const timer = setTimeout(() => {
-      setSubView('read');
-      setReadDomain(navContext.domain);
       const material = STUDY_MATERIAL[navContext.domain];
+      let nextUnread = 0;
       if (material) {
         const readSet = study.readSections[navContext.domain] || [];
-        const nextUnread = material.findIndex((_, i) => !readSet.includes(i));
-        setExpandedSection(nextUnread >= 0 ? nextUnread : 0);
+        const idx = material.findIndex((_, i) => !readSet.includes(i));
+        nextUnread = idx >= 0 ? idx : 0;
       }
+      setPosition({
+        subView: 'read',
+        readDomain: navContext.domain,
+        expandedSection: nextUnread,
+      });
     }, 50);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navContext]);
 
   // Auto-scroll expanded section into view
@@ -54,28 +82,32 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
     }
   }, [expandedSection, readDomain]);
 
-  // Shuffle questions once when domain changes (avoids re-shuffle on every render)
-  const shuffledAll = useMemo(() => {
-    const arr = [...QUESTIONS];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+  // Use the persisted quizOrder so reloads/remounts keep the same question order.
+  // Both "All" and per-domain views are derived from this single permutation.
+  const filteredQuestions = useMemo(() => {
+    const order = study.quizOrder;
+    if (!order || order.length !== QUESTIONS.length) {
+      // Order not yet generated (first paint before useEffect fires) — fall back
+      // to the unshuffled list so we still render *something* deterministic.
+      return quizDomain ? QUESTIONS.filter(q => q.domain === quizDomain) : QUESTIONS;
     }
-    return arr;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quizDomain]);
-
-  const filteredQuestions = quizDomain
-    ? QUESTIONS.filter(q => q.domain === quizDomain)
-    : shuffledAll;
+    const ordered = order.map(i => QUESTIONS[i]).filter(Boolean);
+    return quizDomain ? ordered.filter(q => q.domain === quizDomain) : ordered;
+  }, [study.quizOrder, quizDomain]);
 
   const markQuiz = (correct) => {
     const q = filteredQuestions[quizIndex];
+    if (!q) return;
     studyDispatch({ type: 'RECORD_ANSWER', domain: q.domain, correct, questionIndex: quizIndex });
     dispatch({ type: 'ADD_XP', amount: correct ? 10 : 3 });
     dispatch({ type: 'UPDATE_STREAK' });
     setShowAnswer(false);
     setQuizIndex(prev => Math.min(prev + 1, filteredQuestions.length - 1));
+  };
+
+  const restartQuiz = () => {
+    studyDispatch({ type: 'RESET_QUIZ_PROGRESS', order: shuffleIndices(QUESTIONS.length) });
+    setShowAnswer(false);
   };
 
   // Sub-nav segmented control
@@ -309,7 +341,11 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
   // QUIZ SUB-VIEW
   const renderQuiz = () => {
     if (!filteredQuestions.length) return <div style={{ color: theme.textMuted }}>No questions available.</div>;
-    const q = filteredQuestions[quizIndex];
+    // Clamp the persisted index — switching to a smaller domain or finishing the
+    // bank can leave quizIndex past the end of the current filter.
+    const safeIndex = Math.min(quizIndex, filteredQuestions.length - 1);
+    const q = filteredQuestions[safeIndex];
+    if (!q) return <div style={{ color: theme.textMuted }}>No questions available.</div>;
     const domain = DOMAINS.find(d => d.id === q.domain);
     const dc = domainColors[q.domain] || domain?.color;
 
@@ -338,7 +374,7 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
         )}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
           <button
-            onClick={() => { setQuizDomain(null); setQuizIndex(0); setShowAnswer(false); }}
+            onClick={() => { setQuizDomain(null); setShowAnswer(false); }}
             style={{
               padding: '8px 14px', borderRadius: 8,
               border: !quizDomain ? `2px solid ${theme.primary}` : `1px solid ${theme.border}`,
@@ -352,7 +388,7 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
           {DOMAINS.map(d => (
             <button
               key={d.id}
-              onClick={() => { setQuizDomain(d.id); setQuizIndex(0); setShowAnswer(false); }}
+              onClick={() => { setQuizDomain(d.id); setShowAnswer(false); }}
               style={{
                 padding: '8px 12px', borderRadius: 8,
                 border: quizDomain === d.id ? `2px solid ${domainColors[d.id]}` : `1px solid ${theme.border}`,
@@ -373,8 +409,21 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
             }}>
               {domain?.icon} {domain?.name}
             </span>
-            <span style={{ color: theme.textDim, fontSize: 14 }}>
-              {quizIndex + 1} / {filteredQuestions.length}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: theme.textDim, fontSize: 14 }}>
+                {safeIndex + 1} / {filteredQuestions.length}
+              </span>
+              <button
+                onClick={restartQuiz}
+                title="Restart quiz with a new shuffled order"
+                style={{
+                  background: 'transparent', border: `1px solid ${theme.border}`,
+                  borderRadius: 6, color: theme.textMuted,
+                  fontSize: 12, padding: '4px 8px', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                ↻
+              </button>
             </span>
           </div>
           <div style={{ fontSize: 18, fontWeight: 600, color: theme.text, lineHeight: 1.5, marginBottom: 20 }}>
