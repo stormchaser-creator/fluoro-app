@@ -1,15 +1,15 @@
 # FluoroPath course expansion — October 18, 2026
 
-The course contains 21 lessons, 21 schematic visual guides, and 160 original multiple-choice items. The added 80 items broaden topics rather than creating a second copy of numerical variants. The previous 12 numerical variants remain included in the displayed total. This is formative educational content, not a clinically or psychometrically validated examination.
+The course contains 27 lessons, 27 schematic visual guides, and 200 original multiple-choice items. The added 80 items broaden topics rather than creating a second copy of numerical variants. The previous 12 numerical variants remain included in the displayed total. This is formative educational content, not a clinically or psychometrically validated examination.
 
 ## Distribution and pacing
 
 | Category | Official scored items | Course items | 110-item practice quota |
 | --- | ---: | ---: | ---: |
-| Patient Care | 9 | 18 | 11 |
+| Patient Care | 9 | 24 | 11 |
 | Radiation Physics and Biology | 22 | 42 | 27 |
-| Radiation Protection | 24 | 41 | 29 |
-| Equipment Operation | 22 | 35 | 27 |
+| Radiation Protection | 24 | 61 | 29 |
+| Equipment Operation | 22 | 49 | 27 |
 | Image Evaluation and QC | 13 | 24 | 16 |
 
 Practice quotas use largest-remainder proportional allocation. These are course allocations across 110 graded practice items, not a claim about the actual exam's pilot-item distribution. The 2026 state candidate handbook, page 47, lists 90 scored plus 20 pilot items, 120 minutes testing, and a 140-minute appointment.
@@ -35,4 +35,15 @@ The bank supports one initially unseen 110-item set, not multiple independent fu
 
 ## Verification
 
-`npm test`: 22 passing tests, including full-length category allocation, insufficient pools, legacy backup migration, display tracking, reload recovery, expired-session submission, feedback timing, answer navigation, coverage UI, and visual toggles. `npm run build` and `npm run build:coach` pass. The full PWA has an existing large-chunk warning. Browser/device layout QA was unavailable in this environment; React interactions were exercised in jsdom.
+`npm test`: 25 passing tests, including full-length category allocation, insufficient pools, legacy backup migration, display tracking, reload recovery, expired-session submission, feedback timing, answer navigation, coverage UI, and visual toggles. `npm run build` and `npm run build:coach` pass. The full PWA has an existing large-chunk warning. Browser/device layout QA was unavailable in this environment; React interactions were exercised in jsdom.
+
+
+## Recovered ASRT reading paths
+
+The four user-provided 2017 modules inform topic selection and original teaching: Radiation Protection and Safety; Operation and Safety of Fixed Fluoroscopy Units; Mobile Unit Operation and Safety; and Radiation Protection of the Eye. Local extracted text was reviewed for relevant learning goals, geometry, timing, shielding, pediatric protection, monitoring, lens anatomy, and follow-up discussions. No publisher figures, PDFs, quiz stems, answer keys, personal email content, or private Dropbox invitation are included in the course or repository.
+
+Six additional lessons and 40 original items expand these topics. Four reading paths link both existing and new lessons; overlapping lessons mean module question totals must not be added as a count of independent items. Twelve-item module checks favor unattempted questions; these are formative checks, not unseen exam forms or CE-credit quizzes.
+
+Current public checks include [IAEA eye-lens guidance](https://www.iaea.org/sites/default/files/22/06/lensoftheeyeorp.pdf), [10 CFR 20.1201](https://www.ecfr.gov/current/title-10/chapter-I/part-20/subpart-C/section-20.1201), [FDA pediatric imaging](https://www.fda.gov/radiation-emitting-products/medical-imaging/pediatric-x-ray-imaging), and IAEA SSG-46 facility-design and staff-protection guidance linked in the course. Distinctions retained: the NRC lens rule and IAEA framework are different; pulse width, pulse rate, and display refresh are different; a directional scatter principle is not a guaranteed reduction percentage; workload/use factor/occupancy have separate meanings; and older follow-up triggers are not universal current policy. The course does not claim that all four 2017 modules have been audited line by line or that the current commercial ASRT series is identical.
+
+New interaction checks cover module-to-lesson navigation, module quiz selection and feedback, preference for unattempted items, eye-protection and C-arm toggles, occupancy changes, and independently changing pulse width/rate in the visual. All 25 tests and both builds pass; real mobile-browser layout QA remains unavailable.

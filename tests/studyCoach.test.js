@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { COACH_QUESTIONS, COACH_SOURCES } from '../src/data/coachQuestions.js';
 import { EXAM_CATEGORIES, questionIndexInDomain } from '../src/data/examBlueprint.js';
 import { LESSONS } from '../src/data/coachLessons.js';
+import { STUDY_MODULES, MODULE_LESSONS } from '../src/data/asrtStudyPath.js';
 import { gradePractice, lessonEvidence, selectTimedPractice, unseenQuestions, markCoachSeen, restoreTimedPractice } from '../src/lib/studyCoach.js';
 import { QUESTIONS } from '../src/data/questions.js';
 import { EMPTY_COACH, recordCoachAnswer, selectCoachSession, parseCoachBackup, daysUntilExam, categoryEvidence } from '../src/lib/studyCoach.js';
@@ -118,8 +119,8 @@ test('exam horizon uses calendar dates across daylight saving time', () => {
 
 
 test('every lesson has explanations, application questions, and a teach-back example', () => {
-  assert.equal(LESSONS.length, 21);
-  assert.equal(COACH_QUESTIONS.length, 160);
+  assert.equal(LESSONS.length, 27);
+  assert.equal(COACH_QUESTIONS.length, 200);
   for (const lesson of LESSONS) {
     assert.ok(lesson.plain.length > 80 && lesson.chain.length >= 4);
     assert.ok(lesson.example.steps.length >= 3 && lesson.recallAnswer && lesson.trap);
@@ -159,4 +160,22 @@ test('correct but uncertain items remain in the repair queue until a confident c
   assert.ok(selectCoachSession(COACH_QUESTIONS, uncertain, 'mistakes').some(q => q.id === question.id));
   const repaired = recordCoachAnswer(uncertain, question, true, 'sure', 2000);
   assert.ok(!selectCoachSession(COACH_QUESTIONS, repaired, 'mistakes').some(q => q.id === question.id));
+});
+
+test('all four recovered readings have valid teaching paths and diverse original module checks', () => {
+  assert.equal(STUDY_MODULES.length, 4);
+  assert.equal(MODULE_LESSONS.length, 6);
+  for (const module of STUDY_MODULES) {
+    assert.equal(module.edition, 2017);
+    assert.ok(module.lessons.every(id => LESSONS.some(l => l.id === id)));
+    const check = selectCoachSession(COACH_QUESTIONS, EMPTY_COACH, `module:${module.id}`);
+    assert.equal(check.length, 12);
+    assert.equal(new Set(check.map(q => q.id)).size, 12);
+    assert.ok(check.every(q => module.lessons.includes(q.lessonId)));
+    assert.equal(new Set(check.map(q => q.lessonId)).size, module.lessons.length);
+    const completed = check.reduce((state, q) => recordCoachAnswer(state, q, true, 'sure', 1000), EMPTY_COACH);
+    const nextCheck = selectCoachSession(COACH_QUESTIONS, completed, `module:${module.id}`);
+    assert.ok(nextCheck.every(q => !completed.cards[q.id]));
+  }
+  assert.deepEqual(selectCoachSession(COACH_QUESTIONS, EMPTY_COACH, 'module:unknown'), []);
 });

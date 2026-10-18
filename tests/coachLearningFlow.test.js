@@ -35,9 +35,9 @@ test('learning experience', async t => {
   await t.test('lessons explain mechanisms, render a tube diagram, and open associated practice', async () => {
     await mount();
     try {
-      assert.match(container.textContent, /160 scored questions/);
+      assert.match(container.textContent, /200 scored questions/);
       await click(button('Explore the lessons'));
-      assert.equal(container.querySelectorAll('.coach-lesson-card').length, 21);
+      assert.equal(container.querySelectorAll('.coach-lesson-card').length, 27);
       await click([...container.querySelectorAll('button')].find(b => b.textContent === 'Learn this concept'));
       assert.match(container.textContent, /Follow the mechanism/);
       assert.ok(container.querySelector('svg[aria-label="Electron flow from cathode to anode, with x-rays leaving the target"]'));
@@ -97,6 +97,9 @@ test('learning experience', async t => {
       ['skin', 'Repeat the same patch', /Highest patch: 8 units/],
       ['detectors', 'Direct conversion', /no intermediate scintillator-light stage/],
       ['quality', 'Average frames', /more temporal mixing/],
+      ['eyes', 'Screen intercepts scatter', /Path intercepted/],
+      ['mobile-setup', 'Staff near receptor side', /generally a lower-scatter position/],
+      ['shielding', 'Adjacent staffed office', /Occupancy changed: reassess/],
     ]) {
       await mount(React.createElement(LessonVisual, { lessonId }));
       try { await click(button(toggle)); assert.match(container.textContent, expected); }
@@ -138,7 +141,7 @@ test('learning experience', async t => {
       assert.equal(button('Begin 110-question practice').disabled, false);
       await click(button('Coverage'));
       assert.match(container.textContent, /Still needs outside study/);
-      assert.match(container.textContent, /41 course questions/);
+      assert.match(container.textContent, /61 course questions/);
     } finally { await cleanup(); }
   });
   await t.test('an expired restored practice submits once rather than restarting the timer', async () => {
@@ -152,6 +155,49 @@ test('learning experience', async t => {
       assert.match(container.textContent, /1 \/ 30 correct/);
       assert.equal(JSON.parse(localStorage.getItem('fluoro_coach_v1')).attempts.length, 30);
       assert.equal(localStorage.getItem('fluoro_coach_active_v1'), null);
+    } finally { await cleanup(); }
+  });
+  await t.test('recovered module path opens new eye teaching and a 12-item application check', async () => {
+    await mount();
+    try {
+      await click(button('Study with your ASRT readings'));
+      assert.match(container.textContent, /2017 editions/);
+      assert.equal(container.querySelectorAll('.coach-module-lessons').length, 4);
+      await click(button('Protect the lens: anatomy, scatter, and dose limits'));
+      assert.match(container.textContent, /150 mSv\/year/);
+      assert.match(container.textContent, /20 mSv\/year averaged over five years/);
+      assert.ok(container.querySelector('svg'));
+      await click(button('← Back'));
+      await click(button('Check Radiation Protection of the Eye · 12 questions'));
+      assert.match(container.textContent, /Question 1 \/ 12/);
+      const q = currentQuestion();
+      await click(container.querySelectorAll('input[name="coach-answer"]')[q.answer]);
+      await click(button('Check my reasoning'));
+      assert.equal(container.querySelectorAll('.coach-rationales article').length, 4);
+      assert.match(container.textContent, /Best answer/);
+    } finally { await cleanup(); }
+  });
+  await t.test('pulse visualization distinguishes pulse width from start interval', async () => {
+    await mount(React.createElement(LessonVisual, { lessonId: 'pulse-timing' }));
+    try {
+      assert.match(container.textContent, /Start interval: 100.0 ms/);
+      assert.match(container.textContent, /one pulse: 0.20 mm/);
+      await act(async () => {
+        const input = container.querySelector('#pulse-width');
+        Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '10');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      assert.match(container.textContent, /one pulse: 0.40 mm/);
+      assert.match(container.textContent, /Start interval: 100.0 ms/);
+      await act(async () => {
+        const input = container.querySelector('#pulse-rate');
+        Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '20');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      assert.match(container.textContent, /Start interval: 50.0 ms/);
+      assert.match(container.textContent, /one pulse: 0.40 mm/);
     } finally { await cleanup(); }
   });
 });

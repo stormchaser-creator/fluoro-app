@@ -1,4 +1,5 @@
 import { EXAM_CATEGORIES } from '../data/examBlueprint.js';
+import { STUDY_MODULES } from '../data/asrtStudyPath.js';
 
 export const EMPTY_COACH = { version: 1, cards: {}, attempts: [], examDate: '', lessons: {}, seen: {} };
 const DAY = 86400000;
@@ -42,6 +43,15 @@ export function selectCoachSession(questions, state, mode = 'daily', now = Date.
     return EXAM_CATEGORIES.flatMap(c => diverseTake(questions.filter(q => q.category === c.id), 3));
   }
   if (mode.startsWith('lesson:')) return questions.filter(q => q.lessonId === mode.slice(7));
+  if (mode.startsWith('module:')) {
+    const module = STUDY_MODULES.find(m => m.id === mode.slice(7));
+    if (!module) return [];
+    const pool = questions.filter(q => module.lessons.includes(q.lessonId));
+    // Change the next module check toward untested items before repeating a
+    // familiar answer. Keep several concepts in the sample.
+    const unattempted = diverseTake(pool.filter(q => !state.cards[q.id]), 12);
+    return [...unattempted, ...diverseTake(pool.filter(q => state.cards[q.id]), 12 - unattempted.length)];
+  }
   if (mode === 'mistakes') return questions.filter(q => state.cards[q.id] && (!state.cards[q.id].correct || state.cards[q.id].confidence !== 'sure')).slice(0, count);
   const priorities = Object.fromEntries(categoryEvidence(state).map(c => [c.id, c.priority]));
   const ranked = questions.filter(q => mode !== 'due' || (state.cards[q.id] && state.cards[q.id].due <= now))

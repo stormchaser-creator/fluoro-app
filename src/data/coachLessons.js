@@ -1,3 +1,4 @@
+import { MODULE_LESSONS } from './asrtStudyPath.js';
 import { ADVANCED_LESSONS } from './advancedLessons.js';
 // Original teaching notes. Coverage labels identify outline sections, not an endorsement.
 export const LESSONS = [
@@ -114,4 +115,5 @@ export const LESSONS = [
     trap: 'A declaration for occupational monitoring is not the same as a clinical pregnancy screen, and maternal reference air kerma does not directly give fetal absorbed dose.',
     recall: 'What information would you request for a fetal dose estimate?', recallAnswer: 'Procedure and beam location, exposure/acquisition data, geometry, patient information, and gestational timing, assessed by an appropriately qualified expert.', anchors: ['Worker limit ≠ patient decision threshold', 'Fetal dose needs geometry and exposure information', 'No universal skin-to-fetal percentage'] },
   ...ADVANCED_LESSONS,
+  ...MODULE_LESSONS,
 ];

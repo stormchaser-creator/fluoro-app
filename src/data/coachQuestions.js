@@ -1,9 +1,14 @@
+import { MODULE_QUESTIONS } from './moduleQuestions.js';
 import { EXPANDED_QUESTIONS } from './expandedQuestions.js';
 import { APPLIED_QUESTIONS } from './appliedQuestions.js';
 import { ORIGINAL_TEACHING } from './coachExplanations.js';
 import { BLUEPRINT_URL } from './examBlueprint.js';
 
 export const COACH_SOURCES = {
+  eyeprotection: { title: 'IAEA: Occupational protection for the eye lens', url: 'https://www.iaea.org/sites/default/files/22/06/lensoftheeyeorp.pdf' },
+  interventionalstaff: { title: 'IAEA: Staff protection in image-guided procedures', url: 'https://nucleus.iaea.org/sites/nss-oui/Published%20Chunks/m_60b8e698-4f59-4c24-809a-dfb819ac5050/c_8283d8be-32e8-44cc-83f7-90dcd6a96993__9_0.Html' },
+  shieldingguidance: { title: 'IAEA: Facility design and shielding assessments', url: 'https://nucleus.iaea.org/sites/nss-oui/Published%20Chunks/m_60b8e698-4f59-4c24-809a-dfb819ac5050/c_92a88144-44da-418c-a878-9c778590e687__9_0.Html' },
+  pediatricfda: { title: 'FDA: Pediatric x-ray imaging', url: 'https://www.fda.gov/radiation-emitting-products/medical-imaging/pediatric-x-ray-imaging' },
   dicom: { title: 'DICOM: Imaging information standard', url: 'https://dicom.nema.org/medical/DICOM/current/' },
   radiobiology: { title: 'IAEA: Radiation Biology teaching handbook', url: 'https://www-pub.iaea.org/MTCD/Publications/PDF/TCS-42_web.pdf' },
   physics: { title: 'IAEA: Diagnostic Radiology Physics (teaching reference)', url: 'https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1564webNew-74666420.pdf' },
@@ -107,6 +112,7 @@ export const COACH_QUESTIONS = [
   ...ORIGINAL_QUESTIONS.map(q => ({ ...q, lessonId: ORIGINAL_TEACHING[q.id][0], rationales: ORIGINAL_TEACHING[q.id][1], steps: [] })),
   ...APPLIED_QUESTIONS,
   ...EXPANDED_QUESTIONS,
+  ...MODULE_QUESTIONS,
 ].map(q => {
   const offset = [...q.id].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 4;
   return { ...q,
