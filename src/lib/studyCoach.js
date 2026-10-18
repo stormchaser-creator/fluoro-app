@@ -1,0 +1,59 @@
+import { EXAM_CATEGORIES } from '../data/examBlueprint.js';
+
+export const EMPTY_COACH = { version: 1, cards: {}, attempts: [], examDate: '' };
+const DAY = 86400000;
+
+export function recordCoachAnswer(state, question, correct, confidence, now = Date.now()) {
+  const previous = state.cards[question.id] || {};
+  const streak = correct && confidence === 'sure' ? (previous.streak || 0) + 1 : 0;
+  // Uncertain correct answers return tomorrow; errors return after 10 minutes.
+  const delay = !correct ? 10 * 60000 : confidence !== 'sure' ? DAY : [1, 3, 7, 14, 30][Math.min(streak - 1, 4)] * DAY;
+  return {
+    ...state,
+    cards: { ...state.cards, [question.id]: { correct, confidence, streak, due: now + delay, lastAnswered: now } },
+    attempts: [...state.attempts, { id: question.id, category: question.category, correct, confidence, at: now }].slice(-1000),
+  };
+}
+
+export function categoryEvidence(state) {
+  return EXAM_CATEGORIES.map(category => {
+    const attempts = state.attempts.filter(a => a.category === category.id).slice(-20);
+    const distinct = new Set(attempts.map(a => a.id)).size;
+    const accuracy = attempts.length ? Math.round(attempts.filter(a => a.correct).length / attempts.length * 100) : null;
+    return { ...category, attempts: attempts.length, distinct, accuracy,
+      priority: category.count / 90 * (accuracy === null ? 1 : 1 - accuracy / 100 + 0.2) };
+  }).sort((a, b) => b.priority - a.priority);
+}
+
+export function selectCoachSession(questions, state, mode = 'daily', now = Date.now(), count = 10) {
+  if (mode === 'diagnostic') {
+    // Two items per category: a short baseline, not a full exam simulation.
+    return EXAM_CATEGORIES.flatMap(c => questions.filter(q => q.category === c.id).slice(0, 2));
+  }
+  const priorities = Object.fromEntries(categoryEvidence(state).map(c => [c.id, c.priority]));
+  return questions.filter(q => mode !== 'due' || (state.cards[q.id] && state.cards[q.id].due <= now))
+    .map((q, index) => {
+      const card = state.cards[q.id];
+      const rank = card && card.due <= now ? 3 : !card ? 2 : 0;
+      return { q, rank, priority: priorities[q.category], due: card?.due ?? 0, index };
+    })
+    .sort((a, b) => b.rank - a.rank || b.priority - a.priority || a.due - b.due || a.index - b.index)
+    .filter(x => x.rank > 0).slice(0, count).map(x => x.q);
+}
+
+export function daysUntilExam(date, now = new Date()) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
+  const [year, month, day] = date.split('-').map(Number);
+  const target = Date.UTC(year, month - 1, day);
+  if (!Number.isFinite(target)) return null;
+  return Math.round((target - Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())) / DAY);
+}
+
+export function parseCoachBackup(value, questions) {
+  if (!value || value.version !== 1 || !value.cards || typeof value.cards !== 'object' || Array.isArray(value.cards) || !Array.isArray(value.attempts)) throw new Error('Choose a FluoroPath study coach backup.');
+  const ids = new Set(questions.map(q => q.id));
+  const categories = new Set(EXAM_CATEGORIES.map(c => c.id));
+  const cards = Object.fromEntries(Object.entries(value.cards).filter(([id, c]) => ids.has(id) && c && typeof c.correct === 'boolean' && ['sure', 'unsure'].includes(c.confidence) && Number.isFinite(c.due) && Number.isFinite(c.lastAnswered) && Number.isInteger(c.streak) && c.streak >= 0));
+  const attempts = value.attempts.filter(a => a && ids.has(a.id) && categories.has(a.category) && typeof a.correct === 'boolean' && Number.isFinite(a.at)).slice(-1000);
+  return { version: 1, cards, attempts, examDate: /^\d{4}-\d{2}-\d{2}$/.test(value.examDate || '') ? value.examDate : '' };
+}

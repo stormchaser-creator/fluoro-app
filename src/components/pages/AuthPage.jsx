@@ -1,7 +1,7 @@
 import { useState, memo } from 'react';
 import { signIn, signUp, resetPassword, signInWithOAuth } from '../../lib/supabase';
 
-function AuthPage() {
+function AuthPage({ onOpenCoach }) {
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'reset'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -267,6 +267,9 @@ function AuthPage() {
           </p>
         </div>
 
+        <button onClick={onOpenCoach} style={{ ...buttonStyle, width: '100%', marginBottom: 18 }}>
+          Study coach — start without an account
+        </button>
         {/* Card */}
         <div style={{
           backgroundColor: colors.surface,
