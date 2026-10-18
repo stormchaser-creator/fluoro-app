@@ -84,8 +84,8 @@ export default function HomeTab({ onNavigate }) {
 
   // Readiness label and color
   const getReadinessInfo = (r) => {
-    if (r >= 90) return { label: "You're ready — schedule your exam", color: '#D4AF37' }; // gold
-    if (r >= 75) return { label: 'Almost ready', color: theme.success };
+    if (r >= 90) return { label: "Strong practice activity", color: '#D4AF37' }; // gold
+    if (r >= 75) return { label: 'Building consistency', color: theme.success };
     if (r >= 50) return { label: 'Getting closer', color: theme.warning };
     return { label: 'Keep studying', color: theme.error };
   };
@@ -106,6 +106,11 @@ export default function HomeTab({ onNavigate }) {
 
   return (
     <div>
+      <Card style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20 }}>Your daily study coach</h2>
+        <p style={{ color: theme.textSecondary, margin: '10px 0' }}>Scored starter questions, explanations, and spaced review based on your weak areas.</p>
+        <button onClick={() => onNavigate('coach')} style={{ padding: '12px 18px', borderRadius: 10, border: 'none', background: theme.primary, color: theme.bg, cursor: 'pointer', font: 'inherit' }}>Open study coach</button>
+      </Card>
       {/* Phase Tag */}
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <span style={{
@@ -118,9 +123,10 @@ export default function HomeTab({ onNavigate }) {
         </span>
       </div>
 
+      <p style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center', marginBottom: 16 }}>Activity score from self-graded recall and topic coverage; this does not predict passing.</p>
       {/* Readiness Ring */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-        <ProgressRing value={readiness} size={148} strokeWidth={10} label="Exam Readiness" />
+        <ProgressRing value={readiness} size={148} strokeWidth={10} label="Study Activity" />
       </div>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <div style={{
@@ -295,7 +301,7 @@ export default function HomeTab({ onNavigate }) {
             fontSize: 12, fontWeight: 600, color: theme.textMuted,
             textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12,
           }}>
-            Domain Readiness (weakest → strongest)
+            Recall Practice (weakest → strongest)
           </div>
           {domainReadiness.map(d => {
             const dc = domainColors[d.id] || d.color;

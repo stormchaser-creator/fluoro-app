@@ -12,6 +12,7 @@ import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
 import SpeedReader from './components/study/SpeedReader';
 import MockExam from './components/features/MockExam';
+import StudyCoach from './components/features/StudyCoach';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import AuthPage from './components/pages/AuthPage';
 import { signOut } from './lib/supabase';
@@ -123,6 +124,7 @@ function AppShell() {
       }}>
         <Header onGoHome={() => navigateTo('home')} />
         <div key={activeTab} className="tab-content">
+          {activeTab === 'coach' && <StudyCoach onClose={() => navigateTo('home')} />}
           {activeTab === 'home' && <HomeTab onNavigate={navigateTo} />}
           {activeTab === 'study' && <StudyTab key={navContext?._ts || 'default'} onLaunchRsvp={launchRsvp} navContext={navContext} onNavigate={navigateTo} />}
           {activeTab === 'review' && <ReviewTab />}
@@ -149,6 +151,8 @@ function AppShell() {
 
 function AuthGate() {
   const { user, authChecked } = useAuth();
+  const [showCoach, setShowCoach] = useState(() => new URLSearchParams(window.location.search).has('coach'));
+  if (showCoach) return <StudyCoach onClose={() => setShowCoach(false)} />;
 
   // Still checking auth session — show loading spinner
   if (!authChecked) {
@@ -157,7 +161,7 @@ function AuthGate() {
 
   // Not authenticated — show auth page
   if (!user) {
-    return <AuthPage />;
+    return <AuthPage onOpenCoach={() => setShowCoach(true)} />;
   }
 
   // Authenticated — render the app

@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { useStudy } from '../context/StudyContext';
 import { DOMAINS } from '../data/domains';
 import { QUESTIONS } from '../data/questions';
+import { questionIndexInDomain } from '../data/examBlueprint';
 import STUDY_MATERIAL from '../studyMaterial';
 import Card from '../components/shared/Card';
 import Button from '../components/shared/Button';
@@ -98,7 +99,7 @@ export default function StudyTab({ onLaunchRsvp, navContext, onNavigate }) {
   const markQuiz = (correct) => {
     const q = filteredQuestions[quizIndex];
     if (!q) return;
-    studyDispatch({ type: 'RECORD_ANSWER', domain: q.domain, correct, questionIndex: quizIndex });
+    studyDispatch({ type: 'RECORD_ANSWER', domain: q.domain, correct, questionIndex: questionIndexInDomain(QUESTIONS, q) });
     dispatch({ type: 'ADD_XP', amount: correct ? 10 : 3 });
     dispatch({ type: 'UPDATE_STREAK' });
     setShowAnswer(false);

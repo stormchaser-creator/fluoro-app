@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { useStudy } from '../../context/StudyContext';
 import { DOMAINS } from '../../data/domains';
 import { QUESTIONS } from '../../data/questions';
+import { EXAM_CATEGORIES as ARRT_CATEGORIES, questionIndexInDomain } from '../../data/examBlueprint';
 import Card from '../shared/Card';
 import Button from '../shared/Button';
 import ProgressBar from '../shared/ProgressBar';
@@ -11,54 +12,6 @@ import ProgressBar from '../shared/ProgressBar';
 // ═══════════════════════════════════════════════════════════
 // ARRT Domain Mapping
 // ═══════════════════════════════════════════════════════════
-
-const ARRT_CATEGORIES = [
-  {
-    id: 'patient_care',
-    name: 'Patient Care',
-    pct: 10,
-    count: 9,
-    color: '#F97316',
-    icon: '🩺',
-    domainIds: ['patientcare'],
-  },
-  {
-    id: 'rad_physics_bio',
-    name: 'Radiation Physics & Biology',
-    pct: 24,
-    count: 22,
-    color: '#10B981',
-    icon: '🧬',
-    domainIds: ['radbio', 'skineffects'],
-  },
-  {
-    id: 'rad_protection',
-    name: 'Radiation Protection',
-    pct: 27,
-    count: 24,
-    color: '#EF4444',
-    icon: '🛡️',
-    domainIds: ['radprotection', 'doselimits'],
-  },
-  {
-    id: 'equip_operation',
-    name: 'Equipment Operation',
-    pct: 24,
-    count: 22,
-    color: '#8B5CF6',
-    icon: '⚡',
-    domainIds: ['equipment', 'digital'],
-  },
-  {
-    id: 'image_eval_qc',
-    name: 'Image Evaluation & QC',
-    pct: 14,
-    count: 13,
-    color: '#06B6D4',
-    icon: '✅',
-    domainIds: ['qa'],
-  },
-];
 
 // ═══════════════════════════════════════════════════════════
 // Question Selection Engine
@@ -295,10 +248,11 @@ export default function MockExam({ onClose }) {
   }, [timeLeft, phase, timerActive, handleFinishExam]);
 
   const markAnswer = (correct) => {
+    if (answers[currentIdx]) return;
     setAnswers(prev => ({ ...prev, [currentIdx]: correct ? 'correct' : 'wrong' }));
     // Also record in main study context for global stats
     const q = questions[currentIdx];
-    studyDispatch({ type: 'RECORD_ANSWER', domain: q.domain, correct, questionIndex: currentIdx });
+    studyDispatch({ type: 'RECORD_ANSWER', domain: q.domain, correct, questionIndex: questionIndexInDomain(QUESTIONS, q) });
     dispatch({ type: 'ADD_XP', amount: correct ? 10 : 3 });
   };
 
@@ -330,6 +284,7 @@ export default function MockExam({ onClose }) {
   if (phase === 'setup') {
     return (
       <div>
+        <p style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 16 }}>Self-graded recall practice. The 75% practice target is not an ARRT passing score; official results use a scaled score.</p>
         {/* Back button */}
         <button
           onClick={onClose}
@@ -406,7 +361,7 @@ export default function MockExam({ onClose }) {
                 {[
                   { label: 'Questions', value: '90', color: theme.primary },
                   { label: 'Time Limit', value: '2 hrs', color: theme.warning },
-                  { label: 'Pass Score', value: '75%', color: theme.success },
+                  { label: 'Practice target', value: '75%', color: theme.success },
                 ].map(item => (
                   <div key={item.label} style={{
                     background: theme.surface, borderRadius: 10, padding: 14,
@@ -619,7 +574,7 @@ export default function MockExam({ onClose }) {
                     color: passed ? theme.success : theme.error,
                     fontSize: 14, fontWeight: 700,
                   }}>
-                    {pct}% {passed ? 'PASS' : 'FAIL'}
+                    {pct}% {passed ? 'TARGET MET' : 'REVIEW'}
                   </div>
                 </div>
               );
@@ -925,7 +880,7 @@ export default function MockExam({ onClose }) {
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
           }}>
-            {passed ? 'PASSED' : 'NOT YET'}
+            {passed ? 'PRACTICE TARGET MET' : 'KEEP PRACTICING'}
           </div>
           <div style={{
             display: 'flex', justifyContent: 'center', gap: 20,

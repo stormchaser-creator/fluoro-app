@@ -1,0 +1,203 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import React, { act } from 'react';
+import { JSDOM } from 'jsdom';
+import { build } from 'esbuild';
+import { pathToFileURL } from 'node:url';
+import { mkdir } from 'node:fs/promises';
+import { COACH_QUESTIONS } from '../src/data/coachQuestions.js';
+
+const dom = new JSDOM('<!doctype html><html><head><meta name="theme-color"></head><body><div id="test-root"></div></body></html>', { url: 'https://study.example.test/' });
+Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Event: dom.window.Event, IS_REACT_ACT_ENVIRONMENT: true });
+Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, configurable: true });
+window.confirm = () => true;
+const { createRoot } = await import('react-dom/client');
+await mkdir('node_modules/.cache', { recursive: true });
+const file = `${process.cwd()}/node_modules/.cache/coach-test.mjs`;
+await build({ stdin: { contents: `export {default as StudyCoach} from './src/components/features/StudyCoach.jsx'; export {ThemeProvider} from './src/theme/ThemeContext.jsx'; export {default as LessonVisual} from './src/components/features/CoachVisuals.jsx';`, resolveDir: process.cwd(), loader: 'jsx' }, outfile: file, bundle: true, platform: 'node', format: 'esm', packages: 'external', jsx: 'automatic', loader: { '.css': 'empty' } });
+const { StudyCoach, ThemeProvider, LessonVisual } = await import(pathToFileURL(file));
+const container = document.getElementById('test-root');
+let root;
+async function mount(node = React.createElement(ThemeProvider, null, React.createElement(StudyCoach, { onClose() {} }))) {
+  localStorage.clear(); root = createRoot(container); await act(async () => root.render(node));
+}
+async function cleanup() { await act(async () => root.unmount()); }
+function button(text) {
+  const found = [...container.querySelectorAll('button')].find(b => b.textContent === text);
+  assert.ok(found, `Missing button: ${text}`); return found;
+}
+async function click(node) { await act(async () => node.click()); }
+function currentQuestion() {
+  return COACH_QUESTIONS.find(q => q.q === container.querySelector('.coach-practice h1')?.textContent);
+}
+
+test('learning experience', async t => {
+  await t.test('lessons explain mechanisms, render a tube diagram, and open associated practice', async () => {
+    await mount();
+    try {
+      assert.match(container.textContent, /200 scored questions/);
+      await click(button('Explore the lessons'));
+      assert.equal(container.querySelectorAll('.coach-lesson-card').length, 27);
+      await click([...container.querySelectorAll('button')].find(b => b.textContent === 'Learn this concept'));
+      assert.match(container.textContent, /Follow the mechanism/);
+      assert.ok(container.querySelector('svg[aria-label="Electron flow from cathode to anode, with x-rays leaving the target"]'));
+      assert.match(container.textContent, /Maximum photon energy: 80 keV/);
+      await click(button('Compare with a model explanation'));
+      assert.match(container.textContent, /mA mainly changes how many electrons/);
+      await click(button('Apply this lesson in questions'));
+      assert.equal(currentQuestion().lessonId, 'production');
+    } finally { await cleanup(); }
+  });
+  await t.test('wrong answers show all rationales, link to teaching, and enter the repair queue', async () => {
+    await mount();
+    try {
+      await click(button('Find my gaps · 15 questions'));
+      const q = currentQuestion();
+      await click(container.querySelectorAll('input[name="coach-answer"]')[(q.answer + 1) % 4]);
+      await click(container.querySelectorAll('input[name="confidence"]')[1]);
+      await click(button('Check my reasoning'));
+      assert.equal(container.querySelectorAll('.coach-rationales article').length, 4);
+      assert.ok(container.textContent.includes(q.rationales[q.answer]));
+      const teach = [...container.querySelectorAll('button')].find(b => b.textContent.startsWith('Teach me:'));
+      await click(teach);
+      assert.match(container.textContent, /Follow the mechanism/);
+      await click(button('← Back'));
+      assert.match(container.textContent, /Why each choice works or fails/);
+      const saved = JSON.parse(localStorage.getItem('fluoro_coach_v1'));
+      assert.equal(saved.cards[q.id].correct, false);
+      const errors = [...container.querySelectorAll('nav button')].find(b => b.textContent.startsWith('Mistakes & uncertainty'));
+      await click(errors);
+      assert.match(container.textContent, /high confidence: inspect the misconception/);
+      await click(button('Practice this queue'));
+      assert.equal(currentQuestion().id, q.id);
+    } finally { await cleanup(); }
+  });
+  await t.test('timed practice preserves answers between questions and reveals explanations only after grading', async () => {
+    await mount();
+    try {
+      await click(button('Start timed practice'));
+      assert.match(container.textContent, /Question 1 \/ 30/);
+      assert.equal(container.querySelectorAll('.coach-rationales article').length, 0);
+      const q = currentQuestion();
+      await click(container.querySelectorAll('input[name="coach-answer"]')[q.answer]);
+      await click(button('Next question'));
+      await click(button('Previous question'));
+      assert.equal(container.querySelectorAll('input[name="coach-answer"]')[q.answer].checked, true);
+      assert.equal(container.querySelectorAll('.coach-rationales article').length, 0);
+      await click(button('Submit timed practice'));
+      assert.match(container.textContent, /1 \/ 30 correct/);
+      assert.equal(container.querySelectorAll('details').length, 30);
+      assert.equal(JSON.parse(localStorage.getItem('fluoro_coach_v1')).attempts.length, 30);
+    } finally { await cleanup(); }
+  });
+  await t.test('visual toggles explain scatter, collimation, and local dose concentration', async () => {
+    for (const [lessonId, toggle, expected] of [
+      ['interactions', 'Compton scattering', /photon survives with a new direction/],
+      ['reduction', 'Crop after exposure', /Radiation was still delivered across the larger/],
+      ['skin', 'Repeat the same patch', /Highest patch: 8 units/],
+      ['detectors', 'Direct conversion', /no intermediate scintillator-light stage/],
+      ['quality', 'Average frames', /more temporal mixing/],
+      ['eyes', 'Screen intercepts scatter', /Path intercepted/],
+      ['mobile-setup', 'Staff near receptor side', /generally a lower-scatter position/],
+      ['shielding', 'Adjacent staffed office', /Occupancy changed: reassess/],
+    ]) {
+      await mount(React.createElement(LessonVisual, { lessonId }));
+      try { await click(button(toggle)); assert.match(container.textContent, expected); }
+      finally { await cleanup(); }
+    }
+  });
+  await t.test('110-item unseen practice survives reload, grades by category and blocks a second fresh full set', async () => {
+    await mount();
+    try {
+      await click(button('Exam practice'));
+      await act(async () => { const select = container.querySelector('#assessment-size'); select.value = '110'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+      await click(button('Begin 110-question practice'));
+      assert.match(container.textContent, /Question 1 \/ 110/);
+      assert.equal(container.querySelector('[role="timer"]').textContent, '120:00');
+      const q = currentQuestion();
+      await click(container.querySelectorAll('input[name="coach-answer"]')[q.answer]);
+      await click(button('Next question'));
+      const saved = JSON.parse(localStorage.getItem('fluoro_coach_active_v1'));
+      assert.equal(saved.ids.length, 110);
+      assert.equal(Object.keys(JSON.parse(localStorage.getItem('fluoro_coach_v1')).seen).length, 2);
+      await cleanup();
+      root = createRoot(container);
+      await act(async () => root.render(React.createElement(ThemeProvider, null, React.createElement(StudyCoach, { onClose() {} }))));
+      assert.match(container.textContent, /Question 2 \/ 110/);
+      assert.equal(JSON.parse(localStorage.getItem('fluoro_coach_active_v1')).deadline, saved.deadline);
+      await click(button('Previous question'));
+      assert.equal(currentQuestion().id, q.id);
+      assert.equal(container.querySelectorAll('input[name="coach-answer"]')[q.answer].checked, true);
+      await click(button('Submit timed practice'));
+      assert.match(container.textContent, /1 \/ 110 correct/);
+      assert.match(container.textContent, /1 \/ 110 correct on questions new/);
+      assert.equal(container.querySelectorAll('details').length, 110);
+      assert.equal(localStorage.getItem('fluoro_coach_active_v1'), null);
+      await click(button('Exam practice'));
+      await act(async () => { const select = container.querySelector('#assessment-size'); select.value = '110'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+      assert.equal(button('Begin 110-question practice').disabled, true);
+      assert.match(container.textContent, /not enough unseen questions in every category/);
+      await click(container.querySelectorAll('input[name="fresh-pool"]')[1]);
+      assert.equal(button('Begin 110-question practice').disabled, false);
+      await click(button('Coverage'));
+      assert.match(container.textContent, /Still needs outside study/);
+      assert.match(container.textContent, /61 course questions/);
+    } finally { await cleanup(); }
+  });
+  await t.test('an expired restored practice submits once rather than restarting the timer', async () => {
+    localStorage.clear();
+    const { selectTimedPractice } = await import('../src/lib/studyCoach.js');
+    const session = selectTimedPractice(COACH_QUESTIONS, 30);
+    localStorage.setItem('fluoro_coach_active_v1', JSON.stringify({ version: 1, ids: session.map(q => q.id), mode: 'timed', deadline: Date.now() - 1000, index: 0, fresh: [], responses: { [session[0].id]: { choice: session[0].answer, confidence: 'sure' } } }));
+    root = createRoot(container);
+    try {
+      await act(async () => root.render(React.createElement(ThemeProvider, null, React.createElement(StudyCoach, { onClose() {} }))));
+      assert.match(container.textContent, /1 \/ 30 correct/);
+      assert.equal(JSON.parse(localStorage.getItem('fluoro_coach_v1')).attempts.length, 30);
+      assert.equal(localStorage.getItem('fluoro_coach_active_v1'), null);
+    } finally { await cleanup(); }
+  });
+  await t.test('recovered module path opens new eye teaching and a 12-item application check', async () => {
+    await mount();
+    try {
+      await click(button('Study with your ASRT readings'));
+      assert.match(container.textContent, /2017 editions/);
+      assert.equal(container.querySelectorAll('.coach-module-lessons').length, 4);
+      await click(button('Protect the lens: anatomy, scatter, and dose limits'));
+      assert.match(container.textContent, /150 mSv\/year/);
+      assert.match(container.textContent, /20 mSv\/year averaged over five years/);
+      assert.ok(container.querySelector('svg'));
+      await click(button('← Back'));
+      await click(button('Check Radiation Protection of the Eye · 12 questions'));
+      assert.match(container.textContent, /Question 1 \/ 12/);
+      const q = currentQuestion();
+      await click(container.querySelectorAll('input[name="coach-answer"]')[q.answer]);
+      await click(button('Check my reasoning'));
+      assert.equal(container.querySelectorAll('.coach-rationales article').length, 4);
+      assert.match(container.textContent, /Best answer/);
+    } finally { await cleanup(); }
+  });
+  await t.test('pulse visualization distinguishes pulse width from start interval', async () => {
+    await mount(React.createElement(LessonVisual, { lessonId: 'pulse-timing' }));
+    try {
+      assert.match(container.textContent, /Start interval: 100.0 ms/);
+      assert.match(container.textContent, /one pulse: 0.20 mm/);
+      await act(async () => {
+        const input = container.querySelector('#pulse-width');
+        Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '10');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      assert.match(container.textContent, /one pulse: 0.40 mm/);
+      assert.match(container.textContent, /Start interval: 100.0 ms/);
+      await act(async () => {
+        const input = container.querySelector('#pulse-rate');
+        Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '20');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      assert.match(container.textContent, /Start interval: 50.0 ms/);
+      assert.match(container.textContent, /one pulse: 0.40 mm/);
+    } finally { await cleanup(); }
+  });
+});

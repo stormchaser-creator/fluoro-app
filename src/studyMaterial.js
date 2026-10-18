@@ -1589,22 +1589,19 @@ Iodinated contrast can damage kidney tubules, causing acute kidney injury. Risk 
 - Large contrast volumes
 - Concurrent nephrotoxic medications (NSAIDs, aminoglycosides)
 
-**eGFR thresholds:**
-- **eGFR ≥ 60:** Proceed normally
-- **eGFR 30–60:** Pre-hydrate with IV saline before and after. Use lowest possible contrast volume. Use low-osmolality or iso-osmolality contrast.
-- **eGFR < 30:** Avoid iodinated contrast if possible. If essential, aggressive hydration and nephrology consultation.
+**Renal risk and contrast (ACR Manual on Contrast Media, 2026):**
+- Assess AKI, eGFR, procedure urgency, alternatives, and individual risk. eGFR below 30 is not an absolute prohibition.
+- Routine prophylaxis is not required for every stable patient with eGFR 30–60. Individualize preventive measures and account for fluid-overload risk.
 
-**The Metformin Rule:**
-Metformin is a common diabetes medication cleared by the kidneys. If contrast damages the kidneys → metformin accumulates → **lactic acidosis** (potentially fatal).
-- **Hold metformin for 48 hours AFTER** contrast administration
-- **Recheck renal function** (eGFR) before restarting
-- Do NOT need to hold metformin before the procedure if eGFR is normal
+**Metformin:**
+- For IV iodinated contrast, no routine interruption is needed when there is no AKI and eGFR is at least 30.
+- With AKI, eGFR below 30, or an arterial catheter study that could embolize renal arteries, stop at or before the procedure, withhold for 48 hours, and reassess renal function before restarting.
+- Apply local policies, which may be more restrictive.
 
-**Hydration protocol:**
-- IV normal saline (0.9% NaCl) at 1–1.5 mL/kg/hr
-- Start 6–12 hours before the procedure
-- Continue 6–12 hours after
-- Oral hydration is acceptable for outpatients with normal renal function`,
+**Fasting:**
+Routine intravascular contrast alone does not require fasting. Sedation, anesthesia, and the procedure may impose separate requirements.
+
+Source: https://www.acr.org/Clinical-Resources/Clinical-Tools-and-Reference/Contrast-Manual`,
     },
     {
       title: "Sedation Monitoring & Special Populations",
@@ -1671,12 +1668,12 @@ California requires logging fluoroscopy time for every procedure. Many facilitie
 **Extravasation Management:**
 If contrast leaks out of the vein during injection:
 1. Stop injection immediately
-2. Aspirate any contrast from the IV catheter if possible
+2. Arrange clinical assessment; routine aspiration of extravasated contrast is not recommended by ACR
 3. Elevate the affected limb above heart level
 4. Apply cold compress (ice pack wrapped in cloth) for 15–20 minutes
 5. Monitor for compartment syndrome (severe pain, swelling, loss of pulse/sensation)
 6. Small extravasations (< 10 mL) usually resolve spontaneously
-7. Large extravasations (> 100 mL) or signs of compartment syndrome → surgical consultation
+7. Seek surgical assessment for concerning signs or symptoms; do not rely on a volume threshold alone (ACR Contrast Manual, Extravasation chapter)
 
 **Fall Prevention:**
 - Assess fall risk before the procedure

@@ -1,0 +1,162 @@
+import { EXAM_CATEGORIES } from '../data/examBlueprint.js';
+import { STUDY_MODULES } from '../data/asrtStudyPath.js';
+
+export const EMPTY_COACH = { version: 1, cards: {}, attempts: [], examDate: '', lessons: {}, seen: {} };
+const DAY = 86400000;
+
+export function markCoachSeen(state, questions, now = Date.now()) {
+  const seen = { ...state.seen };
+  for (const q of questions) if (!Object.hasOwn(seen, q.id)) seen[q.id] = now;
+  return { ...state, seen };
+}
+
+export function unseenQuestions(questions, state) {
+  const attempted = new Set(state.attempts.map(a => a.id));
+  return questions.filter(q => !Object.hasOwn(state.seen || {}, q.id) && !state.cards[q.id] && !attempted.has(q.id));
+}
+
+export function recordCoachAnswer(state, question, correct, confidence, now = Date.now()) {
+  const previous = state.cards[question.id] || {};
+  const streak = correct && confidence === 'sure' ? (previous.streak || 0) + 1 : 0;
+  // Uncertain correct answers return tomorrow; errors return after 10 minutes.
+  const delay = !correct ? 10 * 60000 : confidence !== 'sure' ? DAY : [1, 3, 7, 14, 30][Math.min(streak - 1, 4)] * DAY;
+  return {
+    ...markCoachSeen(state, [question], now),
+    cards: { ...state.cards, [question.id]: { correct, confidence, streak, due: now + delay, lastAnswered: now } },
+    attempts: [...state.attempts, { id: question.id, category: question.category, lessonId: question.lessonId, correct, confidence, at: now }].slice(-1000),
+  };
+}
+
+export function categoryEvidence(state) {
+  return EXAM_CATEGORIES.map(category => {
+    const attempts = state.attempts.filter(a => a.category === category.id).slice(-20);
+    const distinct = new Set(attempts.map(a => a.id)).size;
+    const accuracy = attempts.length ? Math.round(attempts.filter(a => a.correct).length / attempts.length * 100) : null;
+    return { ...category, attempts: attempts.length, distinct, accuracy,
+      priority: category.count / 90 * (accuracy === null ? 1 : 1 - accuracy / 100 + 0.2) };
+  }).sort((a, b) => b.priority - a.priority);
+}
+
+export function selectCoachSession(questions, state, mode = 'daily', now = Date.now(), count = 10) {
+  if (mode === 'diagnostic') {
+    // Sample different concepts before returning to a second item in a lesson.
+    return EXAM_CATEGORIES.flatMap(c => diverseTake(questions.filter(q => q.category === c.id), 3));
+  }
+  if (mode.startsWith('lesson:')) return questions.filter(q => q.lessonId === mode.slice(7));
+  if (mode.startsWith('module:')) {
+    const module = STUDY_MODULES.find(m => m.id === mode.slice(7));
+    if (!module) return [];
+    const pool = questions.filter(q => module.lessons.includes(q.lessonId));
+    // Change the next module check toward untested items before repeating a
+    // familiar answer. Keep several concepts in the sample.
+    const unattempted = diverseTake(pool.filter(q => !state.cards[q.id]), 12);
+    return [...unattempted, ...diverseTake(pool.filter(q => state.cards[q.id]), 12 - unattempted.length)];
+  }
+  if (mode === 'mistakes') return questions.filter(q => state.cards[q.id] && (!state.cards[q.id].correct || state.cards[q.id].confidence !== 'sure')).slice(0, count);
+  const priorities = Object.fromEntries(categoryEvidence(state).map(c => [c.id, c.priority]));
+  const ranked = questions.filter(q => mode !== 'due' || (state.cards[q.id] && state.cards[q.id].due <= now))
+    .map((q, index) => {
+      const card = state.cards[q.id];
+      const rank = card && card.due <= now ? 3 : !card ? 2 : 0;
+      return { q, rank, priority: priorities[q.category], due: card?.due ?? 0, index };
+    })
+    .sort((a, b) => b.rank - a.rank || b.priority - a.priority || a.due - b.due || a.index - b.index)
+    .filter(x => x.rank > 0);
+  const overdue = diverseTake(ranked.filter(x => x.rank === 3).map(x => x.q), count);
+  return [...overdue, ...diverseTake(ranked.filter(x => x.rank === 2).map(x => x.q), count - overdue.length)];
+}
+
+function diverseTake(pool, count) {
+  if (count <= 0) return [];
+  const selected = [], seen = new Set();
+  for (const q of pool) {
+    if (seen.has(q.lessonId)) continue;
+    selected.push(q); seen.add(q.lessonId);
+    if (selected.length === count) return selected;
+  }
+  return [...selected, ...pool.filter(q => !selected.includes(q))].slice(0, count);
+}
+
+export function lessonEvidence(lesson, questions, state) {
+  const pool = questions.filter(q => q.lessonId === lesson.id);
+  const tested = pool.filter(q => state.cards[q.id]);
+  const secure = tested.filter(q => state.cards[q.id].correct && state.cards[q.id].confidence === 'sure');
+  const errors = tested.filter(q => !state.cards[q.id].correct);
+  return { total: pool.length, tested: tested.length, secure: secure.length, errors: errors.length,
+    status: errors.length ? 'Relearn this concept' : !tested.length ? 'Not tested yet' : secure.length < tested.length ? 'Correct but uncertain' : 'Check retention later' };
+}
+
+export function timedTargets(count) {
+  if (!Number.isInteger(count) || count < 1) throw new Error('Choose a positive whole question count.');
+  const targets = EXAM_CATEGORIES.map(c => ({ ...c, quota: Math.floor(count * c.count / 90), remainder: count * c.count / 90 % 1 }));
+  let remaining = count - targets.reduce((sum, c) => sum + c.quota, 0);
+  for (const c of [...targets].sort((a, b) => b.remainder - a.remainder)) {
+    if (remaining-- <= 0) break;
+    c.quota++;
+  }
+  return targets;
+}
+
+export function selectTimedPractice(questions, count = 30, random = Math.random) {
+  const targets = timedTargets(count);
+  const unique = [...new Map(questions.map(q => [q.id, q])).values()];
+  const short = targets.filter(c => unique.filter(q => q.category === c.id).length < c.quota);
+  if (short.length) throw new Error(`Not enough questions for this format: ${short.map(c => `${c.name} needs ${c.quota}`).join('; ')}. Choose a shorter set or allow previously seen questions.`);
+  const shuffle = values => {
+    const a = [...values];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const selected = targets.flatMap(c => shuffle(unique.filter(q => q.category === c.id)).slice(0, c.quota));
+  return shuffle(selected);
+}
+
+export function gradePractice(questions, responses) {
+  return questions.map(q => ({ id: q.id, choice: responses[q.id]?.choice ?? null,
+    confidence: responses[q.id]?.confidence || 'unsure', correct: responses[q.id]?.choice === q.answer }));
+}
+
+export function restoreTimedPractice(value, questions) {
+  if (!value || value.version !== 1 || !['timed', 'full', 'fresh-timed', 'fresh-full'].includes(value.mode)) return null;
+  const count = value.mode.endsWith('full') ? 110 : 30;
+  if (!Array.isArray(value.ids) || value.ids.length !== count || new Set(value.ids).size !== count || !Number.isFinite(value.deadline)) return null;
+  const byId = new Map(questions.map(q => [q.id, q]));
+  if (value.ids.some(id => !byId.has(id))) return null;
+  const session = value.ids.map(id => byId.get(id));
+  const responses = {};
+  for (const q of session) {
+    const r = value.responses?.[q.id];
+    if (r && (r.choice === null || (Number.isInteger(r.choice) && r.choice >= 0 && r.choice < 4))) {
+      responses[q.id] = { choice: r.choice, confidence: r.confidence === 'sure' ? 'sure' : 'unsure' };
+    }
+  }
+  return { session, mode: value.mode, deadline: value.deadline, responses,
+    index: Number.isInteger(value.index) && value.index >= 0 && value.index < count ? value.index : 0,
+    fresh: Array.isArray(value.fresh) ? value.fresh.filter(id => value.ids.includes(id)) : [] };
+}
+
+export function daysUntilExam(date, now = new Date()) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
+  const [year, month, day] = date.split('-').map(Number);
+  const target = Date.UTC(year, month - 1, day);
+  if (!Number.isFinite(target)) return null;
+  return Math.round((target - Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())) / DAY);
+}
+
+export function parseCoachBackup(value, questions) {
+  if (!value || value.version !== 1 || !value.cards || typeof value.cards !== 'object' || Array.isArray(value.cards) || !Array.isArray(value.attempts)) throw new Error('Choose a FluoroPath study coach backup.');
+  const ids = new Set(questions.map(q => q.id));
+  const categories = new Set(EXAM_CATEGORIES.map(c => c.id));
+  const cards = Object.fromEntries(Object.entries(value.cards).filter(([id, c]) => ids.has(id) && c && typeof c.correct === 'boolean' && ['sure', 'unsure'].includes(c.confidence) && Number.isFinite(c.due) && Number.isFinite(c.lastAnswered) && Number.isInteger(c.streak) && c.streak >= 0));
+  const attempts = value.attempts.filter(a => a && ids.has(a.id) && categories.has(a.category) && typeof a.correct === 'boolean' && Number.isFinite(a.at)).slice(-1000);
+  const lessons = value.lessons && typeof value.lessons === 'object' && !Array.isArray(value.lessons)
+    ? Object.fromEntries(Object.entries(value.lessons).filter(([id, l]) => /^[a-z-]+$/.test(id) && l && Number.isFinite(l.readAt)).map(([id, l]) => [id, { readAt: l.readAt, reflection: typeof l.reflection === 'string' ? l.reflection.slice(0, 4000) : '' }])) : {};
+  const seen = value.seen && typeof value.seen === 'object' && !Array.isArray(value.seen)
+    ? Object.fromEntries(Object.entries(value.seen).filter(([id, at]) => ids.has(id) && Number.isFinite(at) && at >= 0)) : {};
+  // Old backups did not store displays. At least preserve every known exposure.
+  for (const [id, card] of Object.entries(cards)) if (!Object.hasOwn(seen, id)) seen[id] = card.lastAnswered;
+  for (const a of attempts) if (!Object.hasOwn(seen, a.id)) seen[a.id] = a.at;
+  return { version: 1, cards, attempts, lessons, seen, examDate: /^\d{4}-\d{2}-\d{2}$/.test(value.examDate || '') ? value.examDate : '' };
+}
