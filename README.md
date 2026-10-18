@@ -19,11 +19,12 @@ If you are developing a production application, we recommend using TypeScript wi
 
 Open the study coach from the sign-in screen or Home, or use `/fluoro-app/?coach`. It runs without an account and stores progress separately in this browser. Export/import backups to move progress between devices.
 
-- 20 original multiple-choice starter items across the five ARRT fluoroscopy categories; a 10-item baseline and adaptive daily practice. This is a limited formative bank, not comprehensive exam preparation or a pass predictor.
+- 16 teaching lessons with visual explanations, worked examples, teach-back prompts, and 80 original multiple-choice questions across the five ARRT categories; a 15-item baseline and adaptive daily practice. This is a limited formative bank, not comprehensive exam preparation or a pass predictor.
+- Each question explains all four choices. A mistake/uncertainty queue links back to the relevant lesson. Timed practice contains 30 questions in a custom 40-minute format with feedback deferred until submission.
 - Incorrect answers return in 10 minutes; uncertain correct answers tomorrow; confident answers after 1, 3, 7, 14, then 30 days.
 - The Sources tab links the published ARRT outline (effective January 2023), current candidate information, CDPH, FDA, IAEA, and ACR.
 - The older 395-item bank remains self-graded recall. Its 75% practice target is unrelated to the official scaled passing score. New review records use the question’s stable domain-local position; old erroneous shuffled records cannot be reliably repaired.
 
-Run `npm test` for study scheduling, selection, backup validation, and review-identity checks. Run `npm run build` for the full PWA. Run `npm run build:coach` to create `dist/fluoropath-study-coach.html`, a self-contained portable coach with no remote runtime dependencies. Open that HTML in a browser; local-file storage behavior varies, so export backups. Rebuild the portable file after source changes.
+Run `npm test` for study scheduling, selection, backup validation, review identity, lesson/practice transitions, distractor explanations, visual toggles, error repair, and timed answer navigation. Run `npm run build` for the full PWA. Run `npm run build:coach` to create `dist/fluoropath-study-coach.html`, a self-contained portable coach with no remote runtime dependencies. Open that HTML in a browser; local-file storage behavior varies, so export backups. Rebuild the portable file after source changes.
 
 The clinical-content corrections cover metformin, renal contrast risk, fasting, and extravasation, checked against ACR’s 2026 manual. Other legacy statements still need a complete source audit. Email attachments, private email links, and application records are intentionally kept out of this repository.

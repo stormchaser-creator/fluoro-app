@@ -8,7 +8,7 @@ const result = await build({
     import { createRoot } from 'react-dom/client';
     import { ThemeProvider } from './src/theme/ThemeContext.jsx';
     import StudyCoach from './src/components/features/StudyCoach.jsx';
-    createRoot(document.getElementById('root')).render(<ThemeProvider><StudyCoach onClose={() => { window.location.reload(); }} /></ThemeProvider>);`,
+    createRoot(document.getElementById('root')).render(<ThemeProvider><StudyCoach closeLabel="My path" onClose={() => { window.location.reload(); }} /></ThemeProvider>);`,
     resolveDir: process.cwd(), sourcefile: 'standalone-coach.jsx', loader: 'jsx' },
   bundle: true, minify: true, write: false, outfile: 'coach.js', jsx: 'automatic',
   define: { 'process.env.NODE_ENV': '"production"' },

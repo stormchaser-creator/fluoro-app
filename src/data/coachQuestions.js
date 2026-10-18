@@ -1,4 +1,13 @@
+import { APPLIED_QUESTIONS } from './appliedQuestions.js';
+import { ORIGINAL_TEACHING } from './coachExplanations.js';
+import { BLUEPRINT_URL } from './examBlueprint.js';
+
 export const COACH_SOURCES = {
+  physics: { title: 'IAEA: Diagnostic Radiology Physics (teaching reference)', url: 'https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1564webNew-74666420.pdf' },
+  regulations: { title: '21 CFR 1020.32: Fluoroscopic equipment', url: 'https://www.ecfr.gov/current/title-21/chapter-I/subchapter-J/part-1020/section-1020.32' },
+  occupational: { title: '10 CFR 20.1201: Adult occupational limits', url: 'https://www.ecfr.gov/current/title-10/chapter-I/part-20/subpart-C/section-20.1201' },
+  pregnancy: { title: '10 CFR 20.1208: Occupational embryo/fetus dose', url: 'https://www.ecfr.gov/current/title-10/chapter-I/part-20/subpart-C/section-20.1208' },
+  blueprint: { title: 'ARRT: Fluoroscopy content specifications', url: BLUEPRINT_URL },
   fda: { title: 'FDA: Fluoroscopy safety', url: 'https://www.fda.gov/radiation-emitting-products/medical-x-ray-imaging/fluoroscopy' },
   iaea: { title: 'IAEA: Fluoroscopy dose quantities', url: 'https://www.iaea.org/resources/rpop/health-professionals/interventional-procedures/radiation-doses-in-interventional-fluoroscopy' },
   acr: { title: 'ACR Manual on Contrast Media (2026)', url: 'https://www.acr.org/Clinical-Resources/Clinical-Tools-and-Reference/Contrast-Manual' },
@@ -6,7 +15,7 @@ export const COACH_SOURCES = {
 
 // Original formative questions. These are not actual or recalled ARRT exam items.
 // The starter bank samples the five categories; it does not cover the entire outline.
-export const COACH_QUESTIONS = [
+const ORIGINAL_QUESTIONS = [
   { id: 'pc-metformin', category: 'patient_care', topic: 'Contrast screening',
     q: 'A patient taking metformin has no AKI and an eGFR of 65. For routine IV iodinated contrast, what does ACR recommend?',
     options: ['Always stop metformin for one week', 'Metformin need not routinely be stopped', 'Never administer contrast', 'Stop only after a mild skin reaction'], answer: 1,
@@ -88,3 +97,17 @@ export const COACH_QUESTIONS = [
     options: ['Air kerma increases with distance', 'The beam area stays constant', 'Kerma decreases while beam area increases by the compensating square factor', 'The patient’s skin dose is always constant'], answer: 2,
     explanation: 'Inverse square falloff in kerma is offset by square growth in field area. This ideal beam relationship does not mean that the patient’s skin dose is independent of geometry.', source: 'iaea', section: 'KAP measurement and distance' },
 ];
+
+// Stable, item-specific rotation avoids answer-position cues in numerical sets.
+// IDs stay unchanged so saved review schedules remain valid.
+export const COACH_QUESTIONS = [
+  ...ORIGINAL_QUESTIONS.map(q => ({ ...q, lessonId: ORIGINAL_TEACHING[q.id][0], rationales: ORIGINAL_TEACHING[q.id][1], steps: [] })),
+  ...APPLIED_QUESTIONS,
+].map(q => {
+  const offset = [...q.id].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 4;
+  return { ...q,
+    options: q.options.map((_, i) => q.options[(i + offset) % 4]),
+    rationales: q.rationales.map((_, i) => q.rationales[(i + offset) % 4]),
+    answer: (q.answer - offset + 4) % 4,
+  };
+});

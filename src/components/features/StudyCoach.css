@@ -41,3 +41,77 @@
 .coach-feedback { border-top: 1px solid var(--coach-border); padding-top: 20px; }
 .coach-footer { color: var(--coach-muted); font-size: 12px; padding: 20px 0; }
 @media(max-width: 620px) { .coach main { padding: 18px; } .coach-header { padding: 18px; } .coach-grid { grid-template-columns: 1fr; } .coach-panel { padding: 18px; } .coach-header button { font-size: 13px; } }
+.coach-header strong { font-size: 17px; letter-spacing: -.02em; }
+.coach-hero { max-width: 850px; padding: 28px 0 36px; }
+.coach .coach-hero h1 { font-size: clamp(34px, 5.5vw, 56px); }
+.coach-facts { display: flex; gap: 28px; flex-wrap: wrap; padding-top: 28px; color: var(--coach-muted); font-size: 13px; }
+.coach-facts b { font-size: 25px; color: var(--coach-primary); display: block; }
+.coach-step { color: var(--coach-primary); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.coach-path .coach-panel { display: flex; flex-direction: column; align-items: flex-start; }
+.coach-path .coach-panel h2 { margin: 10px 0 0; }
+.coach-path .coach-panel button { margin-top: auto; }
+.coach-lesson-heading { padding: 16px 0 24px; }
+.coach-lesson-heading h1 { font-size: clamp(30px, 5vw, 45px); letter-spacing: -.03em; max-width: 750px; }
+.coach-lesson-heading p { font-size: 18px; max-width: 760px; }
+.coach-lesson-heading label { display: block; font-size: 13px; font-weight: 600; margin: 16px 0 6px; }
+.coach input[type=search], .coach select, .coach textarea { display: block; width: 100%; padding: 12px 14px; background: var(--coach-surface); color: inherit; border: 1px solid var(--coach-border); border-radius: 10px; font: inherit; }
+.coach textarea { margin: 12px 0; resize: vertical; }
+.coach button:focus-visible, .coach input:focus-visible, .coach select:focus-visible, .coach textarea:focus-visible, .coach summary:focus-visible, .coach a:focus-visible { outline: 3px solid var(--coach-primary); outline-offset: 3px; }
+.coach-lesson-card { display: flex; gap: 22px; align-items: flex-start; }
+.coach-lesson-card h2 { margin-top: 6px; }
+.coach-lesson-card small { margin: 0 0 14px; }
+.coach-lesson-number { font-size: 30px; color: var(--coach-primary); font-weight: 700; min-width: 42px; line-height: 1.3; }
+.coach p.coach-big-explanation { font-size: 20px; line-height: 1.75; margin: 16px 0 28px; color: inherit; }
+.coach-mechanism { counter-reset: mechanism; list-style: none; padding-left: 0 !important; }
+.coach-mechanism li { position: relative; padding: 12px 0 12px 44px; border-top: 1px solid var(--coach-border); }
+.coach-mechanism li::before { counter-increment: mechanism; content: counter(mechanism); position: absolute; left: 0; color: var(--coach-primary); font-weight: 800; }
+.coach-worked { border-left: 4px solid var(--coach-primary); padding-left: 24px; }
+.coach-trap, .coach-lab { padding: 24px; border-radius: 14px; border: 1px solid var(--coach-border); margin: 24px 0; background: var(--coach-surface); }
+.coach-trap { border-left: 4px solid #B7791F; }
+.coach-trap h3 { margin-top: 0; }
+.coach-lab input[type=range] { display: block; width: 100%; margin: 22px 0; accent-color: var(--coach-primary); }
+.coach-lab label { display: block; }
+.coach-lab output { display: block; font-size: 25px; font-weight: 700; color: var(--coach-primary); }
+.coach-lab svg { width: 100%; height: auto; color: var(--coach-primary); max-height: 200px; }
+.coach-model { margin-top: 18px; padding: 16px; border: 1px solid var(--coach-border); border-radius: 10px; }
+.coach-rationales article { padding: 16px; border: 1px solid var(--coach-border); border-radius: 10px; margin: 12px 0; }
+.coach-rationales article.is-correct { border: 2px solid var(--coach-primary); }
+.coach-rationales article.was-selected { border-left: 4px solid #B7791F; }
+.coach-rationales article > div { display: flex; gap: 12px; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+.coach-rationales article span { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--coach-primary); }
+.coach-rationales article p { margin-bottom: 0; }
+.coach-verdict { display: flex; gap: 18px; padding: 12px 0 20px; align-items: flex-start; }
+.coach-verdict > span { font-size: 32px; color: var(--coach-primary); }
+.coach-verdict p { margin: 0; }
+.coach-verdict h2 { margin: 0 0 6px; }
+.coach-source { padding-top: 16px; border-top: 1px solid var(--coach-border); font-size: 13px; }
+.coach summary { cursor: pointer; font-size: 17px; font-weight: 600; }
+.coach details[open] summary { margin-bottom: 18px; }
+.coach-resume { display: flex; gap: 16px; justify-content: space-between; align-items: center; padding: 14px 18px; margin: 0 0 20px; border: 1px solid var(--coach-primary); border-radius: 10px; }
+.coach-resume span { font-size: 13px; }
+.coach-clock { font-variant-numeric: tabular-nums; font-size: 20px !important; font-weight: 800; color: var(--coach-primary) !important; }
+@media(max-width:620px) { .coach-header strong { font-size: 14px; max-width: 220px; } .coach-lesson-number { min-width: 30px; font-size: 24px; } .coach-lesson-card { gap: 12px; } .coach-resume { align-items: flex-start; flex-direction: column; } .coach-facts { gap: 20px; } .coach-trap, .coach-lab { padding: 18px; } .coach p.coach-big-explanation { font-size: 18px; } }
+.coach-svg-scroll { overflow-x: auto; }
+.coach-visual svg { width: 100%; min-width: 420px; height: auto; display: block; }
+.coach-visual input[type=range] { width: 100%; margin: 24px 0; display: block; accent-color: var(--coach-primary); }
+.coach-visual output { display: block; color: var(--coach-primary); font-size: 22px; font-weight: 700; margin-top: 12px; }
+.coach-visual-caption { border-top: 1px solid var(--coach-border); padding-top: 16px; font-size: 14px; }
+.coach-visual-flow { padding: 0 !important; display: grid; grid-template-columns: repeat(auto-fit,minmax(155px,1fr)); gap: 12px; list-style: none; }
+.coach-visual-flow li { padding: 18px; border: 1px solid var(--coach-primary); border-radius: 12px; margin: 0; }
+.coach-visual-flow strong { color: var(--coach-primary); display: block; }
+.coach-visual-flow span { display: block; font-size: 14px; margin-top: 10px; color: var(--coach-muted); }
+.coach-unit-example { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding: 22px 0; }
+.coach-unit-example strong { font-size: 22px; color: var(--coach-primary); }
+.coach-visual button[aria-pressed=true] { border: 2px solid var(--coach-primary); }
+.coach-control-diagram { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; padding: 24px 0; }
+.coach-control-diagram span { font-size: 13px; color: var(--coach-muted); }
+.coach-thickness, .coach-output-bar { min-height: 52px; background: #287DB0; border-radius: 7px; margin: 14px 0; transition: width .25s; }
+.coach-output-bar { background: #C07518; }
+.coach-monitor { margin: 14px 0; background: #dcebdc; color: #224522; border: 4px solid #45555a; border-radius: 7px; padding: 10px; font-size: 13px; }
+.coach-dose-patches { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 24px 0; }
+.coach-dose-patches > div { min-height: 76px; border: 1px solid var(--coach-border); border-radius: 10px; text-align: center; padding: 10px; }
+.coach-dose-patches strong, .coach-dose-patches span { display: block; }
+.coach-dose-patches strong { font-size: 24px; }
+.coach-dose-patches span { font-size: 12px; }
+.coach-visual-comparison { padding: 20px; border: 1px solid var(--coach-primary); border-radius: 12px; }
+@media(max-width:620px) { .coach-control-diagram { grid-template-columns: 1fr; } .coach-visual-flow { grid-template-columns: 1fr; } }
