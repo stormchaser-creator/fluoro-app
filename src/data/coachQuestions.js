@@ -1,8 +1,11 @@
+import { EXPANDED_QUESTIONS } from './expandedQuestions.js';
 import { APPLIED_QUESTIONS } from './appliedQuestions.js';
 import { ORIGINAL_TEACHING } from './coachExplanations.js';
 import { BLUEPRINT_URL } from './examBlueprint.js';
 
 export const COACH_SOURCES = {
+  dicom: { title: 'DICOM: Imaging information standard', url: 'https://dicom.nema.org/medical/DICOM/current/' },
+  radiobiology: { title: 'IAEA: Radiation Biology teaching handbook', url: 'https://www-pub.iaea.org/MTCD/Publications/PDF/TCS-42_web.pdf' },
   physics: { title: 'IAEA: Diagnostic Radiology Physics (teaching reference)', url: 'https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1564webNew-74666420.pdf' },
   regulations: { title: '21 CFR 1020.32: Fluoroscopic equipment', url: 'https://www.ecfr.gov/current/title-21/chapter-I/subchapter-J/part-1020/section-1020.32' },
   occupational: { title: '10 CFR 20.1201: Adult occupational limits', url: 'https://www.ecfr.gov/current/title-10/chapter-I/part-20/subpart-C/section-20.1201' },
@@ -103,6 +106,7 @@ const ORIGINAL_QUESTIONS = [
 export const COACH_QUESTIONS = [
   ...ORIGINAL_QUESTIONS.map(q => ({ ...q, lessonId: ORIGINAL_TEACHING[q.id][0], rationales: ORIGINAL_TEACHING[q.id][1], steps: [] })),
   ...APPLIED_QUESTIONS,
+  ...EXPANDED_QUESTIONS,
 ].map(q => {
   const offset = [...q.id].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 4;
   return { ...q,

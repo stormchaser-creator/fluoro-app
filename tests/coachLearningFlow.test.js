@@ -35,9 +35,9 @@ test('learning experience', async t => {
   await t.test('lessons explain mechanisms, render a tube diagram, and open associated practice', async () => {
     await mount();
     try {
-      assert.match(container.textContent, /80 scored questions/);
+      assert.match(container.textContent, /160 scored questions/);
       await click(button('Explore the lessons'));
-      assert.equal(container.querySelectorAll('.coach-lesson-card').length, 16);
+      assert.equal(container.querySelectorAll('.coach-lesson-card').length, 21);
       await click([...container.querySelectorAll('button')].find(b => b.textContent === 'Learn this concept'));
       assert.match(container.textContent, /Follow the mechanism/);
       assert.ok(container.querySelector('svg[aria-label="Electron flow from cathode to anode, with x-rays leaving the target"]'));
@@ -95,10 +95,63 @@ test('learning experience', async t => {
       ['interactions', 'Compton scattering', /photon survives with a new direction/],
       ['reduction', 'Crop after exposure', /Radiation was still delivered across the larger/],
       ['skin', 'Repeat the same patch', /Highest patch: 8 units/],
+      ['detectors', 'Direct conversion', /no intermediate scintillator-light stage/],
+      ['quality', 'Average frames', /more temporal mixing/],
     ]) {
       await mount(React.createElement(LessonVisual, { lessonId }));
       try { await click(button(toggle)); assert.match(container.textContent, expected); }
       finally { await cleanup(); }
     }
+  });
+  await t.test('110-item unseen practice survives reload, grades by category and blocks a second fresh full set', async () => {
+    await mount();
+    try {
+      await click(button('Exam practice'));
+      await act(async () => { const select = container.querySelector('#assessment-size'); select.value = '110'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+      await click(button('Begin 110-question practice'));
+      assert.match(container.textContent, /Question 1 \/ 110/);
+      assert.equal(container.querySelector('[role="timer"]').textContent, '120:00');
+      const q = currentQuestion();
+      await click(container.querySelectorAll('input[name="coach-answer"]')[q.answer]);
+      await click(button('Next question'));
+      const saved = JSON.parse(localStorage.getItem('fluoro_coach_active_v1'));
+      assert.equal(saved.ids.length, 110);
+      assert.equal(Object.keys(JSON.parse(localStorage.getItem('fluoro_coach_v1')).seen).length, 2);
+      await cleanup();
+      root = createRoot(container);
+      await act(async () => root.render(React.createElement(ThemeProvider, null, React.createElement(StudyCoach, { onClose() {} }))));
+      assert.match(container.textContent, /Question 2 \/ 110/);
+      assert.equal(JSON.parse(localStorage.getItem('fluoro_coach_active_v1')).deadline, saved.deadline);
+      await click(button('Previous question'));
+      assert.equal(currentQuestion().id, q.id);
+      assert.equal(container.querySelectorAll('input[name="coach-answer"]')[q.answer].checked, true);
+      await click(button('Submit timed practice'));
+      assert.match(container.textContent, /1 \/ 110 correct/);
+      assert.match(container.textContent, /1 \/ 110 correct on questions new/);
+      assert.equal(container.querySelectorAll('details').length, 110);
+      assert.equal(localStorage.getItem('fluoro_coach_active_v1'), null);
+      await click(button('Exam practice'));
+      await act(async () => { const select = container.querySelector('#assessment-size'); select.value = '110'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+      assert.equal(button('Begin 110-question practice').disabled, true);
+      assert.match(container.textContent, /not enough unseen questions in every category/);
+      await click(container.querySelectorAll('input[name="fresh-pool"]')[1]);
+      assert.equal(button('Begin 110-question practice').disabled, false);
+      await click(button('Coverage'));
+      assert.match(container.textContent, /Still needs outside study/);
+      assert.match(container.textContent, /41 course questions/);
+    } finally { await cleanup(); }
+  });
+  await t.test('an expired restored practice submits once rather than restarting the timer', async () => {
+    localStorage.clear();
+    const { selectTimedPractice } = await import('../src/lib/studyCoach.js');
+    const session = selectTimedPractice(COACH_QUESTIONS, 30);
+    localStorage.setItem('fluoro_coach_active_v1', JSON.stringify({ version: 1, ids: session.map(q => q.id), mode: 'timed', deadline: Date.now() - 1000, index: 0, fresh: [], responses: { [session[0].id]: { choice: session[0].answer, confidence: 'sure' } } }));
+    root = createRoot(container);
+    try {
+      await act(async () => root.render(React.createElement(ThemeProvider, null, React.createElement(StudyCoach, { onClose() {} }))));
+      assert.match(container.textContent, /1 \/ 30 correct/);
+      assert.equal(JSON.parse(localStorage.getItem('fluoro_coach_v1')).attempts.length, 30);
+      assert.equal(localStorage.getItem('fluoro_coach_active_v1'), null);
+    } finally { await cleanup(); }
   });
 });

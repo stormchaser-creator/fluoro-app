@@ -115,3 +115,9 @@
 .coach-dose-patches span { font-size: 12px; }
 .coach-visual-comparison { padding: 20px; border: 1px solid var(--coach-primary); border-radius: 12px; }
 @media(max-width:620px) { .coach-control-diagram { grid-template-columns: 1fr; } .coach-visual-flow { grid-template-columns: 1fr; } }
+
+.coach-topic-map { display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px }
+.coach-topic-map article { border-top:1px solid var(--coach-border);padding:12px 0 }
+.coach-topic-map button { display:block;margin-top:12px }
+.coach-hvl-bars { display:grid;gap:14px;margin:24px 0 }
+.coach-hvl-bars>div { display:grid;grid-template-columns:65px 1fr 70px;align-items:center;gap:12px }

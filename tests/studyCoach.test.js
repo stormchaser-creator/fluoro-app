@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { COACH_QUESTIONS } from '../src/data/coachQuestions.js';
+import { COACH_QUESTIONS, COACH_SOURCES } from '../src/data/coachQuestions.js';
 import { EXAM_CATEGORIES, questionIndexInDomain } from '../src/data/examBlueprint.js';
 import { LESSONS } from '../src/data/coachLessons.js';
-import { gradePractice, lessonEvidence, selectTimedPractice } from '../src/lib/studyCoach.js';
+import { gradePractice, lessonEvidence, selectTimedPractice, unseenQuestions, markCoachSeen, restoreTimedPractice } from '../src/lib/studyCoach.js';
 import { QUESTIONS } from '../src/data/questions.js';
 import { EMPTY_COACH, recordCoachAnswer, selectCoachSession, parseCoachBackup, daysUntilExam, categoryEvidence } from '../src/lib/studyCoach.js';
 
@@ -51,7 +51,49 @@ test('all starter items have valid choices, unique IDs, and known categories', (
     assert.ok(q.answer >= 0 && q.answer < q.options.length);
     assert.equal(new Set(q.options).size, 4);
     assert.ok(q.explanation && q.source && q.section);
+    assert.ok(COACH_SOURCES[q.source]?.url, `Missing source for ${q.id}`);
   }
+});
+
+test('full-length practice supplies 110 unique items and refuses insufficient category pools', () => {
+  const full = selectTimedPractice(COACH_QUESTIONS, 110, () => 0.6);
+  assert.equal(full.length, 110);
+  assert.equal(new Set(full.map(q => q.id)).size, 110);
+  assert.deepEqual(EXAM_CATEGORIES.map(c => full.filter(q => q.category === c.id).length), [11, 27, 29, 27, 16]);
+  for (const c of EXAM_CATEGORIES) {
+    assert.throws(() => selectTimedPractice(COACH_QUESTIONS.filter(q => q.category !== c.id), 110), /Not enough questions/);
+  }
+  assert.throws(() => selectTimedPractice([...full, ...full].slice(0, 2), 110), /Not enough questions/);
+});
+
+test('unseen pools exclude displayed, answered, and imported legacy attempts without mutating history', () => {
+  const first = COACH_QUESTIONS[0], second = COACH_QUESTIONS[1];
+  const displayed = markCoachSeen(EMPTY_COACH, [first], 100);
+  assert.ok(!unseenQuestions(COACH_QUESTIONS, displayed).includes(first));
+  assert.equal(displayed.cards[first.id], undefined);
+  assert.equal(displayed.attempts.length, 0);
+  assert.equal(markCoachSeen(displayed, [first], 200).seen[first.id], 100);
+  const answered = recordCoachAnswer(displayed, second, false, 'unsure', 300);
+  const legacy = { ...answered }; delete legacy.seen;
+  const restored = parseCoachBackup(legacy, COACH_QUESTIONS);
+  assert.ok(!unseenQuestions(COACH_QUESTIONS, restored).includes(second));
+  assert.ok(unseenQuestions(COACH_QUESTIONS, restored).includes(first)); // Legacy cannot recover unrecorded displays.
+  assert.deepEqual(parseCoachBackup(answered, COACH_QUESTIONS), answered);
+  const allSeen = markCoachSeen(EMPTY_COACH, selectTimedPractice(COACH_QUESTIONS, 110), 400);
+  assert.throws(() => selectTimedPractice(unseenQuestions(COACH_QUESTIONS, allSeen), 110), /Not enough questions/);
+});
+
+test('timed recovery preserves order, choices and original expired deadline; rejects broken sessions', () => {
+  const session = selectTimedPractice(COACH_QUESTIONS, 110);
+  const value = { version: 1, ids: session.map(q => q.id), mode: 'fresh-full', deadline: 100, index: 7, fresh: session.map(q => q.id), responses: { [session[0].id]: { choice: 2, confidence: 'sure' } } };
+  const restored = restoreTimedPractice(value, COACH_QUESTIONS);
+  assert.deepEqual(restored.session.map(q => q.id), value.ids);
+  assert.equal(restored.deadline, 100);
+  assert.equal(restored.index, 7);
+  assert.deepEqual(restored.responses, value.responses);
+  assert.equal(restoreTimedPractice({ ...value, ids: value.ids.slice(1) }, COACH_QUESTIONS), null);
+  assert.equal(restoreTimedPractice({ ...value, ids: Array(110).fill(session[0].id) }, COACH_QUESTIONS), null);
+  assert.equal(restoreTimedPractice({ ...value, ids: ['unknown', ...value.ids.slice(1)] }, COACH_QUESTIONS), null);
 });
 
 test('review IDs resolve the same question after a shuffled or copied session', () => {
@@ -76,8 +118,8 @@ test('exam horizon uses calendar dates across daylight saving time', () => {
 
 
 test('every lesson has explanations, application questions, and a teach-back example', () => {
-  assert.equal(LESSONS.length, 16);
-  assert.equal(COACH_QUESTIONS.length, 80);
+  assert.equal(LESSONS.length, 21);
+  assert.equal(COACH_QUESTIONS.length, 160);
   for (const lesson of LESSONS) {
     assert.ok(lesson.plain.length > 80 && lesson.chain.length >= 4);
     assert.ok(lesson.example.steps.length >= 3 && lesson.recallAnswer && lesson.trap);

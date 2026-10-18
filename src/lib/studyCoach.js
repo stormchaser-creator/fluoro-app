@@ -1,7 +1,18 @@
 import { EXAM_CATEGORIES } from '../data/examBlueprint.js';
 
-export const EMPTY_COACH = { version: 1, cards: {}, attempts: [], examDate: '', lessons: {} };
+export const EMPTY_COACH = { version: 1, cards: {}, attempts: [], examDate: '', lessons: {}, seen: {} };
 const DAY = 86400000;
+
+export function markCoachSeen(state, questions, now = Date.now()) {
+  const seen = { ...state.seen };
+  for (const q of questions) if (!Object.hasOwn(seen, q.id)) seen[q.id] = now;
+  return { ...state, seen };
+}
+
+export function unseenQuestions(questions, state) {
+  const attempted = new Set(state.attempts.map(a => a.id));
+  return questions.filter(q => !Object.hasOwn(state.seen || {}, q.id) && !state.cards[q.id] && !attempted.has(q.id));
+}
 
 export function recordCoachAnswer(state, question, correct, confidence, now = Date.now()) {
   const previous = state.cards[question.id] || {};
@@ -9,7 +20,7 @@ export function recordCoachAnswer(state, question, correct, confidence, now = Da
   // Uncertain correct answers return tomorrow; errors return after 10 minutes.
   const delay = !correct ? 10 * 60000 : confidence !== 'sure' ? DAY : [1, 3, 7, 14, 30][Math.min(streak - 1, 4)] * DAY;
   return {
-    ...state,
+    ...markCoachSeen(state, [question], now),
     cards: { ...state.cards, [question.id]: { correct, confidence, streak, due: now + delay, lastAnswered: now } },
     attempts: [...state.attempts, { id: question.id, category: question.category, lessonId: question.lessonId, correct, confidence, at: now }].slice(-1000),
   };
@@ -65,13 +76,22 @@ export function lessonEvidence(lesson, questions, state) {
     status: errors.length ? 'Relearn this concept' : !tested.length ? 'Not tested yet' : secure.length < tested.length ? 'Correct but uncertain' : 'Check retention later' };
 }
 
-export function selectTimedPractice(questions, count = 30, random = Math.random) {
+export function timedTargets(count) {
+  if (!Number.isInteger(count) || count < 1) throw new Error('Choose a positive whole question count.');
   const targets = EXAM_CATEGORIES.map(c => ({ ...c, quota: Math.floor(count * c.count / 90), remainder: count * c.count / 90 % 1 }));
   let remaining = count - targets.reduce((sum, c) => sum + c.quota, 0);
   for (const c of [...targets].sort((a, b) => b.remainder - a.remainder)) {
     if (remaining-- <= 0) break;
     c.quota++;
   }
+  return targets;
+}
+
+export function selectTimedPractice(questions, count = 30, random = Math.random) {
+  const targets = timedTargets(count);
+  const unique = [...new Map(questions.map(q => [q.id, q])).values()];
+  const short = targets.filter(c => unique.filter(q => q.category === c.id).length < c.quota);
+  if (short.length) throw new Error(`Not enough questions for this format: ${short.map(c => `${c.name} needs ${c.quota}`).join('; ')}. Choose a shorter set or allow previously seen questions.`);
   const shuffle = values => {
     const a = [...values];
     for (let i = a.length - 1; i > 0; i--) {
@@ -79,13 +99,32 @@ export function selectTimedPractice(questions, count = 30, random = Math.random)
     }
     return a;
   };
-  const selected = targets.flatMap(c => shuffle(questions.filter(q => q.category === c.id)).slice(0, c.quota));
+  const selected = targets.flatMap(c => shuffle(unique.filter(q => q.category === c.id)).slice(0, c.quota));
   return shuffle(selected);
 }
 
 export function gradePractice(questions, responses) {
   return questions.map(q => ({ id: q.id, choice: responses[q.id]?.choice ?? null,
     confidence: responses[q.id]?.confidence || 'unsure', correct: responses[q.id]?.choice === q.answer }));
+}
+
+export function restoreTimedPractice(value, questions) {
+  if (!value || value.version !== 1 || !['timed', 'full', 'fresh-timed', 'fresh-full'].includes(value.mode)) return null;
+  const count = value.mode.endsWith('full') ? 110 : 30;
+  if (!Array.isArray(value.ids) || value.ids.length !== count || new Set(value.ids).size !== count || !Number.isFinite(value.deadline)) return null;
+  const byId = new Map(questions.map(q => [q.id, q]));
+  if (value.ids.some(id => !byId.has(id))) return null;
+  const session = value.ids.map(id => byId.get(id));
+  const responses = {};
+  for (const q of session) {
+    const r = value.responses?.[q.id];
+    if (r && (r.choice === null || (Number.isInteger(r.choice) && r.choice >= 0 && r.choice < 4))) {
+      responses[q.id] = { choice: r.choice, confidence: r.confidence === 'sure' ? 'sure' : 'unsure' };
+    }
+  }
+  return { session, mode: value.mode, deadline: value.deadline, responses,
+    index: Number.isInteger(value.index) && value.index >= 0 && value.index < count ? value.index : 0,
+    fresh: Array.isArray(value.fresh) ? value.fresh.filter(id => value.ids.includes(id)) : [] };
 }
 
 export function daysUntilExam(date, now = new Date()) {
@@ -104,5 +143,10 @@ export function parseCoachBackup(value, questions) {
   const attempts = value.attempts.filter(a => a && ids.has(a.id) && categories.has(a.category) && typeof a.correct === 'boolean' && Number.isFinite(a.at)).slice(-1000);
   const lessons = value.lessons && typeof value.lessons === 'object' && !Array.isArray(value.lessons)
     ? Object.fromEntries(Object.entries(value.lessons).filter(([id, l]) => /^[a-z-]+$/.test(id) && l && Number.isFinite(l.readAt)).map(([id, l]) => [id, { readAt: l.readAt, reflection: typeof l.reflection === 'string' ? l.reflection.slice(0, 4000) : '' }])) : {};
-  return { version: 1, cards, attempts, lessons, examDate: /^\d{4}-\d{2}-\d{2}$/.test(value.examDate || '') ? value.examDate : '' };
+  const seen = value.seen && typeof value.seen === 'object' && !Array.isArray(value.seen)
+    ? Object.fromEntries(Object.entries(value.seen).filter(([id, at]) => ids.has(id) && Number.isFinite(at) && at >= 0)) : {};
+  // Old backups did not store displays. At least preserve every known exposure.
+  for (const [id, card] of Object.entries(cards)) if (!Object.hasOwn(seen, id)) seen[id] = card.lastAnswered;
+  for (const a of attempts) if (!Object.hasOwn(seen, a.id)) seen[a.id] = a.at;
+  return { version: 1, cards, attempts, lessons, seen, examDate: /^\d{4}-\d{2}-\d{2}$/.test(value.examDate || '') ? value.examDate : '' };
 }

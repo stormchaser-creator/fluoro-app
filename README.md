@@ -19,8 +19,10 @@ If you are developing a production application, we recommend using TypeScript wi
 
 Open the study coach from the sign-in screen or Home, or use `/fluoro-app/?coach`. It runs without an account and stores progress separately in this browser. Export/import backups to move progress between devices.
 
-- 16 teaching lessons with visual explanations, worked examples, teach-back prompts, and 80 original multiple-choice questions across the five ARRT categories; a 15-item baseline and adaptive daily practice. This is a limited formative bank, not comprehensive exam preparation or a pass predictor.
-- Each question explains all four choices. A mistake/uncertainty queue links back to the relevant lesson. Timed practice contains 30 questions in a custom 40-minute format with feedback deferred until submission.
+- 21 teaching lessons with visual explanations, worked examples, teach-back prompts, and 160 original multiple-choice questions across the five ARRT categories; a 15-item baseline and adaptive daily practice. This is a limited formative bank, not comprehensive exam preparation or a pass predictor.
+- Each question explains all four choices. A mistake/uncertainty queue links back to the relevant lesson. Timed practice offers 30 questions/40 minutes and 110 questions/120 minutes, with proportional category quotas and feedback deferred until submission. All practice items are graded; these are not official scaled scores.
+- Unseen-only selection checks every category before starting and refuses insufficient pools. Displays and attempts are tracked locally; old backups cannot reconstruct unrecorded displays. Results separate new-at-session-start items from repeats. Timed answers and the original deadline survive a reload in this browser; live sessions are excluded from exported progress backups.
+- The Coverage tab links course lessons to category targets and explicitly identifies gaps requiring outside study. The 160-item bank includes 12 earlier numerical variants and cannot supply multiple independent full-length exams.
 - Incorrect answers return in 10 minutes; uncertain correct answers tomorrow; confident answers after 1, 3, 7, 14, then 30 days.
 - The Sources tab links the published ARRT outline (effective January 2023), current candidate information, CDPH, FDA, IAEA, and ACR.
 - The older 395-item bank remains self-graded recall. Its 75% practice target is unrelated to the official scaled passing score. New review records use the question’s stable domain-local position; old erroneous shuffled records cannot be reliably repaired.

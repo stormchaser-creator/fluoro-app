@@ -1,3 +1,4 @@
+import { ADVANCED_LESSONS } from './advancedLessons.js';
 // Original teaching notes. Coverage labels identify outline sections, not an endorsement.
 export const LESSONS = [
   { id: 'production', category: 'rad_physics_bio', title: 'How the tube makes x-rays', minutes: 7, outline: 'Safety 1.A: x-ray production and target interactions', source: 'physics',
@@ -112,4 +113,5 @@ export const LESSONS = [
     example: { prompt: 'A pregnant patient requires urgent imaging. Should a worker’s 5 mSv pregnancy limit be used as an automatic cancellation rule?', steps: ['Identify the setting: patient medical exposure, not occupational exposure.', 'Evaluate clinical urgency, alternatives, and expected fetal absorbed dose.', 'Use the appropriate specialist and medical-physics support.'], result: 'No. Do not transfer a worker dose limit into a patient treatment decision.' },
     trap: 'A declaration for occupational monitoring is not the same as a clinical pregnancy screen, and maternal reference air kerma does not directly give fetal absorbed dose.',
     recall: 'What information would you request for a fetal dose estimate?', recallAnswer: 'Procedure and beam location, exposure/acquisition data, geometry, patient information, and gestational timing, assessed by an appropriately qualified expert.', anchors: ['Worker limit ≠ patient decision threshold', 'Fetal dose needs geometry and exposure information', 'No universal skin-to-fetal percentage'] },
+  ...ADVANCED_LESSONS,
 ];
